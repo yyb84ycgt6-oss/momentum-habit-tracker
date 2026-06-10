@@ -14,7 +14,119 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      habit_logs: {
+        Row: {
+          count: number
+          created_at: string
+          habit_id: string
+          id: string
+          logged_date: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          habit_id: string
+          id?: string
+          logged_date?: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          habit_id?: string
+          id?: string
+          logged_date?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_logs_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habits: {
+        Row: {
+          archived: boolean
+          color: string
+          created_at: string
+          description: string | null
+          frequency: string
+          icon: string
+          id: string
+          name: string
+          sort_order: number
+          target_per_period: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archived?: boolean
+          color?: string
+          created_at?: string
+          description?: string | null
+          frequency?: string
+          icon?: string
+          id?: string
+          name: string
+          sort_order?: number
+          target_per_period?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          archived?: boolean
+          color?: string
+          created_at?: string
+          description?: string | null
+          frequency?: string
+          icon?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          target_per_period?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          notifications_enabled: boolean
+          theme: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          notifications_enabled?: boolean
+          theme?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          notifications_enabled?: boolean
+          theme?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
