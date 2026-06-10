@@ -41,7 +41,7 @@ function Habits() {
         icon: d.icon, color: d.color, frequency: d.frequency,
         target_per_period: d.target_per_period,
       }).eq("id", d.id);
-      if (error) return toast.error(error.message);
+      if (error) { toast.error(error.message); return; }
       toast.success("Habit updated");
     } else {
       const { error } = await supabase.from("habits").insert({
@@ -49,7 +49,7 @@ function Habits() {
         icon: d.icon, color: d.color, frequency: d.frequency,
         target_per_period: d.target_per_period, sort_order: habits.length,
       });
-      if (error) return toast.error(error.message);
+      if (error) { toast.error(error.message); return; }
       toast.success("Habit added");
     }
     load();
@@ -57,7 +57,7 @@ function Habits() {
 
   async function remove(id: string) {
     const { error } = await supabase.from("habits").delete().eq("id", id);
-    if (error) toast.error(error.message);
+    if (error) toast.error(error.message); return; }
     else { toast.success("Habit deleted"); load(); }
   }
 
@@ -69,7 +69,7 @@ function Habits() {
       icon: t.icon, color: t.color, frequency: "daily",
       target_per_period: t.target_per_period, sort_order: habits.length,
     });
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success(`Added "${t.name}"`);
     load();
   }
