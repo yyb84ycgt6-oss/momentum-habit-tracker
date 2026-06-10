@@ -57,9 +57,11 @@ function Habits() {
 
   async function remove(id: string) {
     const { error } = await supabase.from("habits").delete().eq("id", id);
-    if (error) toast.error(error.message); return; }
-    else { toast.success("Habit deleted"); load(); }
+    if (error) { toast.error(error.message); return; }
+    toast.success("Habit deleted");
+    load();
   }
+
 
   async function addTemplate(t: typeof HABIT_TEMPLATES[number]) {
     const { data: { user } } = await supabase.auth.getUser();
