@@ -36,10 +36,10 @@ export interface NotesConfig {
 }
 
 export type GeneratedAppSpec =
-  | { v: 1; id: string; name: string; kind: 'counter'; config: CounterConfig }
-  | { v: 1; id: string; name: string; kind: 'checklist'; config: ChecklistConfig }
-  | { v: 1; id: string; name: string; kind: 'timer'; config: TimerConfig }
-  | { v: 1; id: string; name: string; kind: 'flashcards'; config: FlashcardsConfig }
-  | { v: 1; id: string; name: string; kind: 'notes'; config: NotesConfig };
+  | { v: 1; id: string; name: string; kind: "counter"; config: CounterConfig }
+  | { v: 1; id: string; name: string; kind: "checklist"; config: ChecklistConfig }
+  | { v: 1; id: string; name: string; kind: "timer"; config: TimerConfig }
+  | { v: 1; id: string; name: string; kind: "flashcards"; config: FlashcardsConfig }
+  | { v: 1; id: string; name: string; kind: "notes"; config: NotesConfig };
 
-export type GeneratedAppKind = GeneratedAppSpec['kind'];
+export type GeneratedAppKind = GeneratedAppSpec["kind"];

@@ -10,10 +10,10 @@
 
 /** Wrap raw SVG markup as a CSS `background` value. */
 export const svgBg = (svg: string, fallback: string): string =>
-  `url("data:image/svg+xml,${encodeURIComponent(svg.replace(/\s+/g, ' ').trim())}") center / cover no-repeat, ${fallback}`;
+  `url("data:image/svg+xml,${encodeURIComponent(svg.replace(/\s+/g, " ").trim())}") center / cover no-repeat, ${fallback}`;
 
 /** Reference a real bitmap dropped into public/pc-themes/… */
-export const imageWallpaper = (path: string, fallback = '#000'): string =>
+export const imageWallpaper = (path: string, fallback = "#000"): string =>
   `url(${path}) center / cover no-repeat, ${fallback}`;
 
 /**
@@ -53,7 +53,7 @@ export const CLOUDS_SKY = svgBg(
       <ellipse cx="250" cy="470" rx="90" ry="16"/>
     </g>
   </svg>`,
-  '#4f86c6'
+  "#4f86c6",
 );
 
 /** "Bliss"-like rolling green hill under a blue spring sky (Windows XP). */
@@ -83,33 +83,33 @@ export const BLISS_HILL = svgBg(
     <path d="M0,430 C140,340 320,320 470,380 C610,436 720,420 800,370 L800,600 L0,600 Z" fill="url(#hill)"/>
     <path d="M0,470 C180,400 360,392 520,440 C650,478 740,468 800,440 L800,600 L0,600 Z" fill="#3f8c31" opacity="0.65"/>
   </svg>`,
-  '#4f9be8'
+  "#4f9be8",
 );
 
 /** Vista "Aurora": deep teal-green light ribbons on near-black. */
 export const AURORA_VISTA =
-  'radial-gradient(140% 90% at 15% 100%, rgba(48,164,120,0.55) 0%, transparent 55%),' +
-  'radial-gradient(120% 80% at 70% 110%, rgba(28,110,160,0.6) 0%, transparent 60%),' +
-  'radial-gradient(90% 60% at 90% 0%, rgba(60,180,140,0.25) 0%, transparent 60%),' +
-  'linear-gradient(160deg, #04121c 0%, #062431 55%, #041019 100%)';
+  "radial-gradient(140% 90% at 15% 100%, rgba(48,164,120,0.55) 0%, transparent 55%)," +
+  "radial-gradient(120% 80% at 70% 110%, rgba(28,110,160,0.6) 0%, transparent 60%)," +
+  "radial-gradient(90% 60% at 90% 0%, rgba(60,180,140,0.25) 0%, transparent 60%)," +
+  "linear-gradient(160deg, #04121c 0%, #062431 55%, #041019 100%)";
 
 /** Windows 7 "Harmony": luminous blue with a soft central glow. */
 export const HARMONY_7 =
-  'radial-gradient(70% 90% at 50% 45%, rgba(140,200,255,0.55) 0%, rgba(70,140,220,0.25) 45%, transparent 75%),' +
-  'radial-gradient(120% 100% at 50% 120%, rgba(10,60,140,0.8) 0%, transparent 70%),' +
-  'linear-gradient(180deg, #0a3f86 0%, #1863b8 50%, #0a2f66 100%)';
+  "radial-gradient(70% 90% at 50% 45%, rgba(140,200,255,0.55) 0%, rgba(70,140,220,0.25) 45%, transparent 75%)," +
+  "radial-gradient(120% 100% at 50% 120%, rgba(10,60,140,0.8) 0%, transparent 70%)," +
+  "linear-gradient(180deg, #0a3f86 0%, #1863b8 50%, #0a2f66 100%)";
 
 /** Windows 8 angular Metro backdrop. */
 export const METRO_8 =
-  'linear-gradient(115deg, transparent 0 55%, rgba(255,255,255,0.06) 55% 70%, transparent 70%),' +
-  'linear-gradient(245deg, transparent 0 60%, rgba(0,0,0,0.18) 60% 78%, transparent 78%),' +
-  'linear-gradient(135deg, #1a5fb4 0%, #2672ec 55%, #1f4fc0 100%)';
+  "linear-gradient(115deg, transparent 0 55%, rgba(255,255,255,0.06) 55% 70%, transparent 70%)," +
+  "linear-gradient(245deg, transparent 0 60%, rgba(0,0,0,0.18) 60% 78%, transparent 78%)," +
+  "linear-gradient(135deg, #1a5fb4 0%, #2672ec 55%, #1f4fc0 100%)";
 
 /** Windows 10 "Hero": dark blue with a diagonal light beam. */
 export const HERO_10 =
-  'linear-gradient(62deg, transparent 0 44%, rgba(120,190,255,0.34) 49%, rgba(190,230,255,0.5) 50%, rgba(120,190,255,0.34) 51%, transparent 56%),' +
-  'radial-gradient(90% 90% at 50% 55%, rgba(0,90,180,0.5) 0%, transparent 70%),' +
-  'linear-gradient(180deg, #01143a 0%, #032a66 55%, #01102e 100%)';
+  "linear-gradient(62deg, transparent 0 44%, rgba(120,190,255,0.34) 49%, rgba(190,230,255,0.5) 50%, rgba(120,190,255,0.34) 51%, transparent 56%)," +
+  "radial-gradient(90% 90% at 50% 55%, rgba(0,90,180,0.5) 0%, transparent 70%)," +
+  "linear-gradient(180deg, #01143a 0%, #032a66 55%, #01102e 100%)";
 
 /**
  * Complete neutral token baseline for non-Windows themes. Every required
@@ -118,61 +118,61 @@ export const HERO_10 =
  * guaranteeing no CSS variable is ever undefined inside the scope.
  */
 export const BASE_TOKENS: Record<`--pc-${string}`, string> = {
-  '--pc-font': `'Segoe UI', 'Helvetica Neue', Arial, sans-serif`,
-  '--pc-titlebar-font': `'Segoe UI', 'Helvetica Neue', Arial, sans-serif`,
-  '--pc-desktop-bg': '#20242c',
-  '--pc-surface': '#f2f2f2',
-  '--pc-surface-text': '#1a1a1a',
-  '--pc-window-bg': '#f2f2f2',
-  '--pc-window-radius': '8px',
-  '--pc-window-border': 'rgba(0,0,0,0.3)',
-  '--pc-window-shadow': '0 10px 30px rgba(0,0,0,0.5)',
-  '--pc-content-bg': '#fafafa',
-  '--pc-titlebar-bg': '#e8e8e8',
-  '--pc-titlebar-bg-inactive': '#f0f0f0',
-  '--pc-titlebar-text': '#1a1a1a',
-  '--pc-titlebar-text-inactive': '#9a9a9a',
-  '--pc-titlebar-height': '32px',
-  '--pc-bevel-light': '#ffffff',
-  '--pc-bevel-dark': '#808080',
-  '--pc-bevel-darker': '#303030',
-  '--pc-accent': '#3584e4',
-  '--pc-accent-text': '#ffffff',
-  '--pc-taskbar-bg': 'rgba(24,24,28,0.9)',
-  '--pc-taskbar-text': '#ffffff',
-  '--pc-taskbar-height': '42px',
-  '--pc-taskbar-border': 'rgba(255,255,255,0.12)',
-  '--pc-taskbar-blur': '14px',
-  '--pc-start-bg': 'transparent',
-  '--pc-start-text': '#ffffff',
-  '--pc-menu-bg': 'rgba(245,245,247,0.95)',
-  '--pc-menu-text': '#1a1a1a',
-  '--pc-menu-hover-bg': 'rgba(0,0,0,0.08)',
-  '--pc-menu-hover-text': '#000000',
-  '--pc-menu-radius': '10px',
-  '--pc-menu-blur': '20px',
-  '--pc-icon-label': '#ffffff',
-  '--pc-icon-label-shadow': '0 1px 2px rgba(0,0,0,0.85)',
-  '--pc-icon-select-bg': 'rgba(255,255,255,0.25)',
-  '--pc-btn-bg': '#ffffff',
-  '--pc-btn-text': '#1a1a1a',
-  '--pc-field-bg': '#ffffff',
-  '--pc-field-text': '#1a1a1a',
-  '--pc-banner-from': '#30343c',
-  '--pc-banner-to': '#5a6270',
-  '--pc-menubar-height': '28px',
-  '--pc-menubar-bg': 'rgba(245,245,247,0.8)',
-  '--pc-menubar-text': '#1a1a1a',
-  '--pc-dock-bg': 'rgba(255,255,255,0.3)',
-  '--pc-dock-border': 'rgba(255,255,255,0.3)',
-  '--pc-dock-radius': '18px',
-  '--pc-dock-blur': '18px',
-  '--pc-dock-plate-bg': 'rgba(255,255,255,0.2)',
+  "--pc-font": `'Segoe UI', 'Helvetica Neue', Arial, sans-serif`,
+  "--pc-titlebar-font": `'Segoe UI', 'Helvetica Neue', Arial, sans-serif`,
+  "--pc-desktop-bg": "#20242c",
+  "--pc-surface": "#f2f2f2",
+  "--pc-surface-text": "#1a1a1a",
+  "--pc-window-bg": "#f2f2f2",
+  "--pc-window-radius": "8px",
+  "--pc-window-border": "rgba(0,0,0,0.3)",
+  "--pc-window-shadow": "0 10px 30px rgba(0,0,0,0.5)",
+  "--pc-content-bg": "#fafafa",
+  "--pc-titlebar-bg": "#e8e8e8",
+  "--pc-titlebar-bg-inactive": "#f0f0f0",
+  "--pc-titlebar-text": "#1a1a1a",
+  "--pc-titlebar-text-inactive": "#9a9a9a",
+  "--pc-titlebar-height": "32px",
+  "--pc-bevel-light": "#ffffff",
+  "--pc-bevel-dark": "#808080",
+  "--pc-bevel-darker": "#303030",
+  "--pc-accent": "#3584e4",
+  "--pc-accent-text": "#ffffff",
+  "--pc-taskbar-bg": "rgba(24,24,28,0.9)",
+  "--pc-taskbar-text": "#ffffff",
+  "--pc-taskbar-height": "42px",
+  "--pc-taskbar-border": "rgba(255,255,255,0.12)",
+  "--pc-taskbar-blur": "14px",
+  "--pc-start-bg": "transparent",
+  "--pc-start-text": "#ffffff",
+  "--pc-menu-bg": "rgba(245,245,247,0.95)",
+  "--pc-menu-text": "#1a1a1a",
+  "--pc-menu-hover-bg": "rgba(0,0,0,0.08)",
+  "--pc-menu-hover-text": "#000000",
+  "--pc-menu-radius": "10px",
+  "--pc-menu-blur": "20px",
+  "--pc-icon-label": "#ffffff",
+  "--pc-icon-label-shadow": "0 1px 2px rgba(0,0,0,0.85)",
+  "--pc-icon-select-bg": "rgba(255,255,255,0.25)",
+  "--pc-btn-bg": "#ffffff",
+  "--pc-btn-text": "#1a1a1a",
+  "--pc-field-bg": "#ffffff",
+  "--pc-field-text": "#1a1a1a",
+  "--pc-banner-from": "#30343c",
+  "--pc-banner-to": "#5a6270",
+  "--pc-menubar-height": "28px",
+  "--pc-menubar-bg": "rgba(245,245,247,0.8)",
+  "--pc-menubar-text": "#1a1a1a",
+  "--pc-dock-bg": "rgba(255,255,255,0.3)",
+  "--pc-dock-border": "rgba(255,255,255,0.3)",
+  "--pc-dock-radius": "18px",
+  "--pc-dock-blur": "18px",
+  "--pc-dock-plate-bg": "rgba(255,255,255,0.2)",
 };
 
 /** Windows 11 "Bloom": soft blue ribbon folds. */
 export const BLOOM_11 =
-  'radial-gradient(60% 80% at 30% 40%, rgba(120,180,255,0.75) 0%, transparent 60%),' +
-  'radial-gradient(55% 70% at 68% 55%, rgba(60,110,220,0.8) 0%, transparent 65%),' +
-  'radial-gradient(70% 90% at 55% 85%, rgba(160,200,255,0.5) 0%, transparent 60%),' +
-  'linear-gradient(160deg, #2456c4 0%, #3f74e0 45%, #1c3f9e 100%)';
+  "radial-gradient(60% 80% at 30% 40%, rgba(120,180,255,0.75) 0%, transparent 60%)," +
+  "radial-gradient(55% 70% at 68% 55%, rgba(60,110,220,0.8) 0%, transparent 65%)," +
+  "radial-gradient(70% 90% at 55% 85%, rgba(160,200,255,0.5) 0%, transparent 60%)," +
+  "linear-gradient(160deg, #2456c4 0%, #3f74e0 45%, #1c3f9e 100%)";

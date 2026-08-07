@@ -1,22 +1,20 @@
-import type { PCThemeDefinition, PCThemeId } from './types';
-import { PC_DEFAULT_THEME_ID } from './types';
-import { cosmicJackie } from './themes/cosmicJackie';
-import { win95 } from './themes/win95';
-import { win98 } from './themes/win98';
-import { winme } from './themes/winme';
-import { win2000 } from './themes/win2000';
-import { winxp } from './themes/winxp';
-import { winvista } from './themes/winvista';
-import { win7 } from './themes/win7';
-import { win8 } from './themes/win8';
-import { win10 } from './themes/win10';
-import { win11 } from './themes/win11';
-import { macos9, macosxAqua, macosSonoma } from './themes/macos';
-import { ubuntuUnity, gnomeAdwaita, kdePlasma, elementaryOS } from './themes/linux';
-import {
-  androidMaterial, androidHolo, ios6, ios17, chromeOS,
-} from './themes/mobileos';
-import { amiga, nextstep, beos } from './themes/retroos';
+import type { PCThemeDefinition, PCThemeId } from "./types";
+import { PC_DEFAULT_THEME_ID } from "./types";
+import { cosmicJackie } from "./themes/cosmicJackie";
+import { win95 } from "./themes/win95";
+import { win98 } from "./themes/win98";
+import { winme } from "./themes/winme";
+import { win2000 } from "./themes/win2000";
+import { winxp } from "./themes/winxp";
+import { winvista } from "./themes/winvista";
+import { win7 } from "./themes/win7";
+import { win8 } from "./themes/win8";
+import { win10 } from "./themes/win10";
+import { win11 } from "./themes/win11";
+import { macos9, macosxAqua, macosSonoma } from "./themes/macos";
+import { ubuntuUnity, gnomeAdwaita, kdePlasma, elementaryOS } from "./themes/linux";
+import { androidMaterial, androidHolo, ios6, ios17, chromeOS } from "./themes/mobileos";
+import { amiga, nextstep, beos } from "./themes/retroos";
 
 /**
  * PC Theme Registry — the single source of truth for available themes.
@@ -67,7 +65,7 @@ export const PC_THEMES: PCThemeDefinition[] = [
   beos,
 ];
 
-const byId = new Map<string, PCThemeDefinition>(PC_THEMES.map(t => [t.id, t]));
+const byId = new Map<string, PCThemeDefinition>(PC_THEMES.map((t) => [t.id, t]));
 
 /** Resolve a theme id; unknown/removed ids safely fall back to the default. */
 export function getPCTheme(id: PCThemeId | null | undefined): PCThemeDefinition {

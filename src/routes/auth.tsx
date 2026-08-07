@@ -9,7 +9,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>) => ({
+  // The return type is declared with `mode` optional on purpose. It is always
+  // populated at runtime, but typing it as required makes `<Link to="/auth">`
+  // a type error everywhere the mode does not matter — which is most places,
+  // including the landing page's "Sign in" button.
+  validateSearch: (s: Record<string, unknown>): { mode?: "signup" | "signin" } => ({
     mode: s.mode === "signup" ? "signup" : "signin",
   }),
   head: () => ({ meta: [{ title: "Sign in — Momentum" }] }),
@@ -25,7 +29,7 @@ function Auth() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (data.session) navigate({ to: "/desktop", replace: true });
     });
   }, [navigate]);
 
@@ -37,15 +41,15 @@ function Auth() {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email, password,
-          options: { emailRedirectTo: window.location.origin + "/dashboard" },
+          options: { emailRedirectTo: window.location.origin + "/desktop" },
         });
         if (error) throw error;
         toast.success("Account created — welcome!");
-        navigate({ to: "/dashboard", replace: true });
+        navigate({ to: "/desktop", replace: true });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/dashboard", replace: true });
+        navigate({ to: "/desktop", replace: true });
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not sign in");
@@ -60,7 +64,7 @@ function Auth() {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { emailRedirectTo: window.location.origin + "/dashboard" },
+        options: { emailRedirectTo: window.location.origin + "/desktop" },
       });
       if (error) throw error;
       toast.success("Magic link sent — check your email");
@@ -72,7 +76,7 @@ function Auth() {
   async function google() {
     setBusy(true);
     const res = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/dashboard",
+      redirect_uri: window.location.origin + "/desktop",
     });
     if (res.error) {
       toast.error(res.error.message || "Google sign‑in failed");
@@ -80,7 +84,7 @@ function Auth() {
       return;
     }
     if (!res.redirected) {
-      navigate({ to: "/dashboard", replace: true });
+      navigate({ to: "/desktop", replace: true });
     }
   }
 

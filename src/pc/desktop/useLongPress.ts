@@ -11,8 +11,8 @@
  *   - suppresses iOS Safari's own text-callout so ours is the only menu
  *   - fires a short haptic tick on devices that support it
  */
-import { useCallback, useEffect, useRef } from 'react';
-import { haptic } from './haptics';
+import { useCallback, useEffect, useRef } from "react";
+import { haptic } from "./haptics";
 
 /** Hold duration before the menu opens.
  *
@@ -30,7 +30,7 @@ export interface ContextRequest {
   x: number;
   y: number;
   /** What produced it — useful for sizing hit areas, not for branching logic. */
-  source: 'mouse' | 'touch';
+  source: "mouse" | "touch";
 }
 
 export interface LongPressHandlers {
@@ -75,7 +75,7 @@ export function useLongPress(
         justFired.current = false;
         return;
       }
-      onRequest({ x: e.clientX, y: e.clientY, source: 'mouse' });
+      onRequest({ x: e.clientX, y: e.clientY, source: "mouse" });
     },
     [enabled, onRequest],
   );
@@ -84,7 +84,7 @@ export function useLongPress(
     (e: React.PointerEvent) => {
       // Mouse right-click is handled by onContextMenu; only hold-to-open
       // needs a timer, and only for a primary touch/pen contact.
-      if (!enabled || e.pointerType === 'mouse' || !e.isPrimary) return;
+      if (!enabled || e.pointerType === "mouse" || !e.isPrimary) return;
       // A hold on a nested target (a desktop icon) belongs to that target,
       // not to the surface behind it. Without this, both timers run and the
       // ancestor's menu wins the race — the icon's menu never appears.
@@ -98,8 +98,8 @@ export function useLongPress(
         // A tick confirms the hold registered, so the user lets go instead
         // of holding longer and wondering. Its character comes from the
         // active theme (see haptics.ts).
-        haptic('longPress');
-        onRequest({ x, y, source: 'touch' });
+        haptic("longPress");
+        onRequest({ x, y, source: "touch" });
       }, LONG_PRESS_MS);
     },
     [enabled, onRequest, clear],

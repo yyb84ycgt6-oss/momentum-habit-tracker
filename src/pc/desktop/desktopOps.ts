@@ -10,20 +10,20 @@
  * iconMap on load — the same contract getMergedDesktopItems already uses
  * for custom apps.
  */
-import { DesktopItem } from '@/pc/types';
-import type { GeneratedAppSpec } from '@/pc/generative/appSpec';
-import { generateAppSpec } from '@/pc/generative/generateAppSpec';
+import { DesktopItem } from "@/pc/types";
+import type { GeneratedAppSpec } from "@/pc/generative/appSpec";
+import { generateAppSpec } from "@/pc/generative/generateAppSpec";
 
 export type DesktopList = (DesktopItem | null)[];
 
 /** localStorage key for items the user created (folders, documents). */
-export const USER_ITEMS_KEY = 'sas_user_desktop_items';
+export const USER_ITEMS_KEY = "sas_user_desktop_items";
 
 /** Shape actually written to storage — icons flattened to a name. */
 export interface StoredItem {
   id: string;
   name: string;
-  type: 'app' | 'folder';
+  type: "app" | "folder";
   iconName: string;
   bgColor?: string;
   appId?: string;
@@ -41,7 +41,7 @@ function iconNameOf(item: DesktopItem): string {
   if (item.iconName) return item.iconName;
   const display = (item.icon as { displayName?: string })?.displayName;
   if (display) return display;
-  return item.type === 'folder' ? 'Folder' : 'Globe';
+  return item.type === "folder" ? "Folder" : "Globe";
 }
 
 /** Exported so a provenance record can hash the exact bytes an export will
@@ -63,7 +63,7 @@ export const toStored = (item: DesktopItem): StoredItem => ({
  *  StoredItem -> DesktopItem contract, not two. */
 export const fromStored = (
   stored: StoredItem,
-  resolveIcon: (name: string) => DesktopItem['icon'],
+  resolveIcon: (name: string) => DesktopItem["icon"],
 ): DesktopItem => ({
   id: stored.id,
   name: stored.name,
@@ -80,9 +80,7 @@ export const fromStored = (
 /** Read back everything the user made. Never throws — a corrupt entry
  *  costs the user their custom items, so failing loud on boot is worse
  *  than starting empty. */
-export function loadUserItems(
-  resolveIcon: (name: string) => DesktopItem['icon'],
-): DesktopItem[] {
+export function loadUserItems(resolveIcon: (name: string) => DesktopItem["icon"]): DesktopItem[] {
   try {
     const raw = localStorage.getItem(USER_ITEMS_KEY);
     if (!raw) return [];
@@ -90,7 +88,7 @@ export function loadUserItems(
     if (!Array.isArray(parsed)) return [];
     return parsed.map((s) => fromStored(s, resolveIcon));
   } catch (e) {
-    console.error('desktopOps: could not read saved desktop items', e);
+    console.error("desktopOps: could not read saved desktop items", e);
     return [];
   }
 }
@@ -99,20 +97,17 @@ export function loadUserItems(
  *  the built-in catalog are excluded — those are re-merged from source. */
 export function saveUserItems(items: DesktopList): void {
   try {
-    const mine = items.filter(
-      (i): i is DesktopItem => !!i && isUserCreated(i),
-    );
+    const mine = items.filter((i): i is DesktopItem => !!i && isUserCreated(i));
     localStorage.setItem(USER_ITEMS_KEY, JSON.stringify(mine.map(toStored)));
   } catch (e) {
-    console.error('desktopOps: could not save desktop items', e);
+    console.error("desktopOps: could not save desktop items", e);
   }
 }
 
 /** User-created ids carry a prefix so they're distinguishable from catalog
  *  entries without keeping a second registry in sync. */
-const USER_PREFIX = 'user-';
-export const isUserCreated = (item: DesktopItem): boolean =>
-  item.id.startsWith(USER_PREFIX);
+const USER_PREFIX = "user-";
+export const isUserCreated = (item: DesktopItem): boolean => item.id.startsWith(USER_PREFIX);
 
 const newId = (kind: string) =>
   `${USER_PREFIX}${kind}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -123,9 +118,7 @@ const newId = (kind: string) =>
  * doesn't produce duplicates the user can't tell apart.
  */
 export function uniqueName(base: string, siblings: DesktopList): string {
-  const taken = new Set(
-    siblings.filter(Boolean).map((i) => i!.name.toLowerCase()),
-  );
+  const taken = new Set(siblings.filter(Boolean).map((i) => i!.name.toLowerCase()));
   if (!taken.has(base.toLowerCase())) return base;
   for (let n = 2; n < 1000; n++) {
     const candidate = `${base} (${n})`;
@@ -136,16 +129,17 @@ export function uniqueName(base: string, siblings: DesktopList): string {
 
 export function createFolder(
   items: DesktopList,
-  icon: DesktopItem['icon'],
+  icon: DesktopItem["icon"],
   name?: string,
 ): { items: DesktopList; created: DesktopItem } {
   const created: DesktopItem = {
-    id: newId('folder'),
-    name: uniqueName(name?.trim() || 'New Folder', items),
-    type: 'folder',
+    id: newId("folder"),
+    name: uniqueName(name?.trim() || "New Folder", items),
+    type: "folder",
     icon,
-    iconName: 'Folder',
-    bgColor: 'bg-gradient-to-br from-amber-500 via-amber-600 to-amber-800 border border-amber-400/30',
+    iconName: "Folder",
+    bgColor:
+      "bg-gradient-to-br from-amber-500 via-amber-600 to-amber-800 border border-amber-400/30",
     contents: [],
   };
   return { items: [...items, created], created };
@@ -153,18 +147,18 @@ export function createFolder(
 
 export function createTextDocument(
   items: DesktopList,
-  icon: DesktopItem['icon'],
+  icon: DesktopItem["icon"],
   name?: string,
 ): { items: DesktopList; created: DesktopItem } {
   const created: DesktopItem = {
-    id: newId('doc'),
-    name: uniqueName(name?.trim() || 'New Document', items),
-    type: 'app',
-    appId: 'notepad',
+    id: newId("doc"),
+    name: uniqueName(name?.trim() || "New Document", items),
+    type: "app",
+    appId: "notepad",
     icon,
-    iconName: 'Layers',
-    bgColor: 'bg-gradient-to-br from-sky-600 via-blue-700 to-zinc-900 border border-sky-500/30',
-    notepadInitialContent: '',
+    iconName: "Layers",
+    bgColor: "bg-gradient-to-br from-sky-600 via-blue-700 to-zinc-900 border border-sky-500/30",
+    notepadInitialContent: "",
   };
   return { items: [...items, created], created };
 }
@@ -184,17 +178,18 @@ export function createTextDocument(
 export function createGeneratedApp(
   items: DesktopList,
   description: string,
-  icon: DesktopItem['icon'],
+  icon: DesktopItem["icon"],
 ): { items: DesktopList; created: DesktopItem } {
   const spec = generateAppSpec(description);
   const created: DesktopItem = {
-    id: newId('genapp'),
+    id: newId("genapp"),
     name: uniqueName(spec.name, items),
-    type: 'app',
+    type: "app",
     appId: spec.id,
     icon,
-    iconName: 'Sparkles',
-    bgColor: 'bg-gradient-to-br from-amber-500 via-orange-600 to-zinc-900 border border-amber-400/30',
+    iconName: "Sparkles",
+    bgColor:
+      "bg-gradient-to-br from-amber-500 via-orange-600 to-zinc-900 border border-amber-400/30",
     generatedSpec: spec,
   };
   return { items: [...items, created], created };
@@ -202,11 +197,7 @@ export function createGeneratedApp(
 
 /** Rename in place. Returns the list unchanged if the name is blank or the
  *  item is gone, so a cancelled prompt can call this safely. */
-export function renameItem(
-  items: DesktopList,
-  id: string,
-  nextName: string,
-): DesktopList {
+export function renameItem(items: DesktopList, id: string, nextName: string): DesktopList {
   const trimmed = nextName.trim();
   if (!trimmed) return items;
   return items.map((i) => (i && i.id === id ? { ...i, name: trimmed } : i));
@@ -221,31 +212,27 @@ export function deleteItem(items: DesktopList, id: string): DesktopList {
   return items.map((i) => (i && i.id === id ? null : i));
 }
 
-export type SortKey = 'name' | 'type';
+export type SortKey = "name" | "type";
 
 /** Sort visible items, dropping the layout gaps (a real desktop's "sort by"
  *  compacts too). Folders lead in type order, matching file managers. */
 export function sortItems(items: DesktopList, key: SortKey): DesktopList {
   const present = items.filter((i): i is DesktopItem => !!i);
   const sorted = [...present].sort((a, b) => {
-    if (key === 'type' && a.type !== b.type) return a.type === 'folder' ? -1 : 1;
+    if (key === "type" && a.type !== b.type) return a.type === "folder" ? -1 : 1;
     return a.name.localeCompare(b.name, undefined, { numeric: true });
   });
   return sorted;
 }
 
 /** Move an item into a folder (the payoff of having folders at all). */
-export function moveIntoFolder(
-  items: DesktopList,
-  itemId: string,
-  folderId: string,
-): DesktopList {
+export function moveIntoFolder(items: DesktopList, itemId: string, folderId: string): DesktopList {
   const moving = items.find((i) => i && i.id === itemId);
   if (!moving || itemId === folderId) return items;
   return items
     .map((i) => {
       if (!i) return i;
-      if (i.id === folderId && i.type === 'folder') {
+      if (i.id === folderId && i.type === "folder") {
         return { ...i, contents: [...(i.contents || []), moving] };
       }
       return i;
@@ -259,7 +246,7 @@ export function moveIntoFolder(
    or shared. Versioned because a file written today has to still be
    readable after the item shape changes. */
 
-export const EXPORT_FORMAT = 'pc-desktop-item';
+export const EXPORT_FORMAT = "pc-desktop-item";
 export const EXPORT_VERSION = 1;
 
 interface ExportEnvelope {
@@ -288,8 +275,11 @@ export function serializeForExport(item: DesktopItem, provenance?: unknown): str
 
 /** A filename that's safe on every OS and still recognisable. */
 export function exportFilename(item: DesktopItem): string {
-  const safe = item.name.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
-  return `${safe || 'desktop-item'}.pcapp.json`;
+  const safe = item.name
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
+  return `${safe || "desktop-item"}.pcapp.json`;
 }
 
 /** Deliberately a flat shape rather than a discriminated union: this repo
@@ -311,23 +301,26 @@ export interface ImportResult {
 export function parseImport(
   text: string,
   siblings: DesktopList,
-  resolveIcon: (name: string) => DesktopItem['icon'],
+  resolveIcon: (name: string) => DesktopItem["icon"],
 ): ImportResult {
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
   } catch {
-    return { ok: false, error: 'That file is not valid JSON.' };
+    return { ok: false, error: "That file is not valid JSON." };
   }
   const env = parsed as Partial<ExportEnvelope>;
   if (!env || env.format !== EXPORT_FORMAT) {
-    return { ok: false, error: 'That file is not a PC desktop item export.' };
+    return { ok: false, error: "That file is not a PC desktop item export." };
   }
-  if (typeof env.version !== 'number' || env.version > EXPORT_VERSION) {
-    return { ok: false, error: `That export is version ${env.version}, newer than this PC understands (${EXPORT_VERSION}).` };
+  if (typeof env.version !== "number" || env.version > EXPORT_VERSION) {
+    return {
+      ok: false,
+      error: `That export is version ${env.version}, newer than this PC understands (${EXPORT_VERSION}).`,
+    };
   }
-  if (!env.item || typeof env.item.name !== 'string' || !env.item.type) {
-    return { ok: false, error: 'That export is missing its item data.' };
+  if (!env.item || typeof env.item.name !== "string" || !env.item.type) {
+    return { ok: false, error: "That export is missing its item data." };
   }
   const restored = fromStored(env.item, resolveIcon);
   return {

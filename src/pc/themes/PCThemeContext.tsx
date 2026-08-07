@@ -1,12 +1,8 @@
-import React, {
-  createContext, useCallback, useContext, useEffect, useMemo, useState,
-} from 'react';
-import type { CSSProperties, ReactNode } from 'react';
-import type {
-  PCThemeDefinition, PCThemeId, PCThemePersistedState, PCWallpaper,
-} from './types';
-import { PC_DEFAULT_THEME_ID, PC_THEME_STORAGE_KEY } from './types';
-import { getPCTheme, isKnownPCTheme, PC_THEMES } from './registry';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import type { PCThemeDefinition, PCThemeId, PCThemePersistedState, PCWallpaper } from "./types";
+import { PC_DEFAULT_THEME_ID, PC_THEME_STORAGE_KEY } from "./types";
+import { getPCTheme, isKnownPCTheme, PC_THEMES } from "./registry";
 
 /**
  * PCThemeProvider — the one stateful piece of the theme system.
@@ -39,15 +35,15 @@ interface PCThemeContextValue {
   /** One-tap revert to the cosmic-jackie default. */
   revertToDefault: () => void;
   /** Play an optional theme sound; silently no-ops when absent/blocked. */
-  playSound: (kind: 'startup' | 'open' | 'close' | 'error') => void;
+  playSound: (kind: "startup" | "open" | "close" | "error") => void;
   /**
    * Props for the PC scope container: data attributes that activate the
    * scoped CSS plus the theme's CSS variables as inline style. Spread them
    * on the desktop-surface element only.
    */
   scopeProps: {
-    'data-pc-theme': string;
-    'data-pc-family': string;
+    "data-pc-theme": string;
+    "data-pc-family": string;
     style: CSSProperties;
   };
 }
@@ -58,20 +54,22 @@ const PCThemeContext = createContext<PCThemeContextValue | null>(null);
 
 function loadPersisted(): PCThemePersistedState {
   const fallback: PCThemePersistedState = {
-    v: 1, themeId: PC_DEFAULT_THEME_ID, wallpaperByTheme: {},
+    v: 1,
+    themeId: PC_DEFAULT_THEME_ID,
+    wallpaperByTheme: {},
   };
-  if (typeof window === 'undefined') return fallback;
+  if (typeof window === "undefined") return fallback;
   try {
     const raw = localStorage.getItem(PC_THEME_STORAGE_KEY);
     if (!raw) return fallback;
     const parsed = JSON.parse(raw);
-    if (!parsed || parsed.v !== 1 || typeof parsed.themeId !== 'string') return fallback;
+    if (!parsed || parsed.v !== 1 || typeof parsed.themeId !== "string") return fallback;
     return {
       v: 1,
       // A theme removed in a later release must not brick the shell:
       themeId: isKnownPCTheme(parsed.themeId) ? parsed.themeId : PC_DEFAULT_THEME_ID,
       wallpaperByTheme:
-        parsed.wallpaperByTheme && typeof parsed.wallpaperByTheme === 'object'
+        parsed.wallpaperByTheme && typeof parsed.wallpaperByTheme === "object"
           ? parsed.wallpaperByTheme
           : {},
     };
@@ -81,7 +79,11 @@ function loadPersisted(): PCThemePersistedState {
 }
 
 function savePersisted(state: PCThemePersistedState) {
-  try { localStorage.setItem(PC_THEME_STORAGE_KEY, JSON.stringify(state)); } catch { /* quota/private mode — keep in-memory state */ }
+  try {
+    localStorage.setItem(PC_THEME_STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    /* quota/private mode — keep in-memory state */
+  }
 }
 
 /* ── provider ──────────────────────────────────────────────────────────── */
@@ -89,7 +91,9 @@ function savePersisted(state: PCThemePersistedState) {
 export const PCThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [persisted, setPersisted] = useState<PCThemePersistedState>(loadPersisted);
 
-  useEffect(() => { savePersisted(persisted); }, [persisted]);
+  useEffect(() => {
+    savePersisted(persisted);
+  }, [persisted]);
 
   const theme = getPCTheme(persisted.themeId);
   const isDefault = theme.id === PC_DEFAULT_THEME_ID;
@@ -97,18 +101,18 @@ export const PCThemeProvider: React.FC<{ children: ReactNode }> = ({ children })
   const wallpaper = useMemo<PCWallpaper>(() => {
     const chosenId = persisted.wallpaperByTheme[theme.id] ?? theme.defaultWallpaperId;
     return (
-      theme.wallpapers.find(w => w.id === chosenId) ||
-      theme.wallpapers.find(w => w.id === theme.defaultWallpaperId) ||
+      theme.wallpapers.find((w) => w.id === chosenId) ||
+      theme.wallpapers.find((w) => w.id === theme.defaultWallpaperId) ||
       theme.wallpapers[0]
     );
   }, [theme, persisted.wallpaperByTheme]);
 
   const setTheme = useCallback((id: PCThemeId) => {
-    setPersisted(prev => ({ ...prev, themeId: isKnownPCTheme(id) ? id : PC_DEFAULT_THEME_ID }));
+    setPersisted((prev) => ({ ...prev, themeId: isKnownPCTheme(id) ? id : PC_DEFAULT_THEME_ID }));
   }, []);
 
   const setWallpaper = useCallback((wallpaperId: string) => {
-    setPersisted(prev => ({
+    setPersisted((prev) => ({
       ...prev,
       wallpaperByTheme: { ...prev.wallpaperByTheme, [prev.themeId]: wallpaperId },
     }));
@@ -116,31 +120,46 @@ export const PCThemeProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const revertToDefault = useCallback(() => setTheme(PC_DEFAULT_THEME_ID), [setTheme]);
 
-  const playSound = useCallback((kind: 'startup' | 'open' | 'close' | 'error') => {
-    const url = theme.sounds?.[kind];
-    if (!url) return;
-    try {
-      const audio = new Audio(url);
-      audio.volume = 0.4;
-      void audio.play().catch(() => { /* autoplay blocked — stay silent */ });
-    } catch { /* no Audio support — stay silent */ }
-  }, [theme]);
+  const playSound = useCallback(
+    (kind: "startup" | "open" | "close" | "error") => {
+      const url = theme.sounds?.[kind];
+      if (!url) return;
+      try {
+        const audio = new Audio(url);
+        audio.volume = 0.4;
+        void audio.play().catch(() => {
+          /* autoplay blocked — stay silent */
+        });
+      } catch {
+        /* no Audio support — stay silent */
+      }
+    },
+    [theme],
+  );
 
   const scopeProps = useMemo(
     () => ({
-      'data-pc-theme': theme.id,
-      'data-pc-family': theme.family,
+      "data-pc-theme": theme.id,
+      "data-pc-family": theme.family,
       style: theme.tokens as CSSProperties,
     }),
-    [theme]
+    [theme],
   );
 
   const value = useMemo<PCThemeContextValue>(
     () => ({
-      theme, themeId: theme.id, isDefault, themes: PC_THEMES, wallpaper,
-      setTheme, setWallpaper, revertToDefault, playSound, scopeProps,
+      theme,
+      themeId: theme.id,
+      isDefault,
+      themes: PC_THEMES,
+      wallpaper,
+      setTheme,
+      setWallpaper,
+      revertToDefault,
+      playSound,
+      scopeProps,
     }),
-    [theme, isDefault, wallpaper, setTheme, setWallpaper, revertToDefault, playSound, scopeProps]
+    [theme, isDefault, wallpaper, setTheme, setWallpaper, revertToDefault, playSound, scopeProps],
   );
 
   return <PCThemeContext.Provider value={value}>{children}</PCThemeContext.Provider>;
@@ -151,7 +170,7 @@ export const PCThemeProvider: React.FC<{ children: ReactNode }> = ({ children })
 /** Strict hook for components that only exist inside the PC shell. */
 export function usePCTheme(): PCThemeContextValue {
   const ctx = useContext(PCThemeContext);
-  if (!ctx) throw new Error('usePCTheme must be used within <PCThemeProvider>');
+  if (!ctx) throw new Error("usePCTheme must be used within <PCThemeProvider>");
   return ctx;
 }
 

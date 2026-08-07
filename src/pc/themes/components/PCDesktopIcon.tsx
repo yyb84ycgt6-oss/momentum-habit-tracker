@@ -1,7 +1,7 @@
-import React from 'react';
-import type { DesktopItem } from '@/pc/types';
-import type { PCIconPack } from '../types';
-import { PCAppIcon } from '../icons/PCIcon';
+import React from "react";
+import type { DesktopItem } from "@/pc/types";
+import type { PCIconPack } from "../types";
+import { PCAppIcon } from "../icons/PCIcon";
 
 /**
  * PCDesktopIcon — the classic desktop icon used while a Windows theme is

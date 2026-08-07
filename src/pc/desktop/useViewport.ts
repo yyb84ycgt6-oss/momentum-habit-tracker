@@ -11,7 +11,7 @@
  * pc-themes.css, which is the visual source of truth — 768 itself counts as
  * mobile, so the JS and the CSS switch on the same pixel.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export const MOBILE_MAX_WIDTH = 768;
 
@@ -30,8 +30,8 @@ export interface Viewport {
 function read(): Viewport {
   // Guard for any non-browser render path; the desktop default keeps a
   // server-side or test render from claiming to be a phone.
-  const width = typeof window === 'undefined' ? 1024 : window.innerWidth;
-  const height = typeof window === 'undefined' ? 768 : window.innerHeight;
+  const width = typeof window === "undefined" ? 1024 : window.innerWidth;
+  const height = typeof window === "undefined" ? 768 : window.innerHeight;
   return { width, height, isMobile: isMobileWidth(width), isLandscape: width > height };
 }
 
@@ -41,12 +41,12 @@ export function useViewport(): Viewport {
 
   useEffect(() => {
     const onResize = () => setViewport(read());
-    window.addEventListener('resize', onResize);
+    window.addEventListener("resize", onResize);
     // Orientation changes on iOS report the old size if read too early.
-    window.addEventListener('orientationchange', onResize);
+    window.addEventListener("orientationchange", onResize);
     return () => {
-      window.removeEventListener('resize', onResize);
-      window.removeEventListener('orientationchange', onResize);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
     };
   }, []);
 

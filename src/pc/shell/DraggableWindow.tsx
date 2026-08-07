@@ -259,7 +259,9 @@ export const DraggableWindow: React.FC<DraggableWindowProps> = ({
             <div
               className={`flex items-center gap-1.5 font-medium pointer-events-none min-w-0 flex-1 ${pcTheme!.theme.window.controlsSide === "left" ? "justify-center pr-10" : ""}`}
             >
-              {pcTheme!.theme.window.showTitleIcon && Icon && <Icon size={13} className="opacity-90 shrink-0" />}
+              {pcTheme!.theme.window.showTitleIcon && Icon && (
+                <Icon size={13} className="opacity-90 shrink-0" />
+              )}
               <span className="truncate">{title}</span>
             </div>
             {pcTheme!.theme.window.controlsSide !== "left" && controls}

@@ -20,7 +20,7 @@ export interface StorageLike {
   setItem(key: string, value: string): void;
 }
 
-const KEY_PREFIX = 'pc_generated_app_state_v1:';
+const KEY_PREFIX = "pc_generated_app_state_v1:";
 
 function resolveStorage(storage?: StorageLike | null): StorageLike | null {
   if (storage !== undefined) return storage;
@@ -42,7 +42,11 @@ export function loadGeneratedAppState<T>(itemId: string, storage?: StorageLike |
   }
 }
 
-export function saveGeneratedAppState<T>(itemId: string, state: T, storage?: StorageLike | null): void {
+export function saveGeneratedAppState<T>(
+  itemId: string,
+  state: T,
+  storage?: StorageLike | null,
+): void {
   const s = resolveStorage(storage);
   if (!s) return;
   try {

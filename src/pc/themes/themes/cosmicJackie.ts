@@ -1,4 +1,4 @@
-import type { PCThemeDefinition } from '../types';
+import type { PCThemeDefinition } from "../types";
 
 /**
  * cosmic-jackie — THE DEFAULT. This theme is a deliberate no-op:
@@ -8,27 +8,27 @@ import type { PCThemeDefinition } from '../types';
  * only so pickers can show it and users can revert to it.
  */
 export const cosmicJackie: PCThemeDefinition = {
-  id: 'cosmic-jackie',
-  label: 'Cosmic Jackie',
-  era: 'Default',
-  description: 'The original cosmic PC — Jackie’s home look. Zero overrides.',
-  family: 'cosmic',
-  iconPack: 'cosmic',
-  preview: { a: '#312e81', b: '#7c3aed', c: '#db2777' },
+  id: "cosmic-jackie",
+  label: "Cosmic Jackie",
+  era: "Default",
+  description: "The original cosmic PC — Jackie’s home look. Zero overrides.",
+  family: "cosmic",
+  iconPack: "cosmic",
+  preview: { a: "#312e81", b: "#7c3aed", c: "#db2777" },
   tokens: {},
   wallpapers: [
     // Kept for picker completeness; the cosmic desktop keeps its live
     // gradient / AI-generated wallpaper pipeline untouched.
-    { id: 'cosmic', label: 'Cosmic Nebula', css: '' },
+    { id: "cosmic", label: "Cosmic Nebula", css: "" },
   ],
-  defaultWallpaperId: 'cosmic',
-  window: { controls: 'fluent', showTitleIcon: true },
+  defaultWallpaperId: "cosmic",
+  window: { controls: "fluent", showTitleIcon: true },
   taskbar: {
-    startLabel: '',
-    startLogo: 'fluent',
+    startLabel: "",
+    startLogo: "fluent",
     centered: false,
     showThemeTrayButton: true,
     showClock: true,
   },
-  startMenu: 'list10',
+  startMenu: "list10",
 };

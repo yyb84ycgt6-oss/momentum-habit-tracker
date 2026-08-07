@@ -132,7 +132,11 @@ export async function fetchRemoteState(): Promise<RemoteDesktop | null> {
 }
 
 let pendingTimer: ReturnType<typeof setTimeout> | null = null;
-let pendingPayload: { state: DesktopState; themeId?: string; wallpaperByTheme?: Record<string, string> } | null = null;
+let pendingPayload: {
+  state: DesktopState;
+  themeId?: string;
+  wallpaperByTheme?: Record<string, string>;
+} | null = null;
 let inFlight = false;
 
 async function flush(): Promise<void> {
@@ -159,7 +163,9 @@ async function flush(): Promise<void> {
         : {}),
     };
 
-    const { error } = await supabase.from("pc_desktop_state").upsert(row, { onConflict: "user_id" });
+    const { error } = await supabase
+      .from("pc_desktop_state")
+      .upsert(row, { onConflict: "user_id" });
     if (error) throw error;
     setLocalRevision(revision);
     bus.emit("cloud-sync-status", { status: "idle" });

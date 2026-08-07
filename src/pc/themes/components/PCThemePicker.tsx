@@ -1,6 +1,6 @@
-import React from 'react';
-import { RotateCcw } from 'lucide-react';
-import { usePCTheme } from '../PCThemeContext';
+import React from "react";
+import { RotateCcw } from "lucide-react";
+import { usePCTheme } from "../PCThemeContext";
 
 /**
  * PCThemePicker — reusable theme + wallpaper chooser.
@@ -13,10 +13,11 @@ import { usePCTheme } from '../PCThemeContext';
  * right on the cosmic dark Settings panel AND on a Win95 gray dialog alike.
  */
 export const PCThemePicker: React.FC<{ compact?: boolean }> = ({ compact }) => {
-  const { themes, themeId, theme, isDefault, wallpaper, setTheme, setWallpaper, revertToDefault } = usePCTheme();
+  const { themes, themeId, theme, isDefault, wallpaper, setTheme, setWallpaper, revertToDefault } =
+    usePCTheme();
 
   return (
-    <div className="space-y-4" style={{ color: 'inherit' }}>
+    <div className="space-y-4" style={{ color: "inherit" }}>
       <div>
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-bold uppercase tracking-wide opacity-70">PC Theme</span>
@@ -24,7 +25,7 @@ export const PCThemePicker: React.FC<{ compact?: boolean }> = ({ compact }) => {
             <button
               onClick={revertToDefault}
               className="flex items-center gap-1 text-[11px] px-2 py-1 rounded border hover:opacity-80"
-              style={{ borderColor: 'rgba(127,127,127,0.45)' }}
+              style={{ borderColor: "rgba(127,127,127,0.45)" }}
               title="Back to the cosmic Jackie default"
             >
               <RotateCcw size={11} /> Revert to Cosmic
@@ -34,9 +35,11 @@ export const PCThemePicker: React.FC<{ compact?: boolean }> = ({ compact }) => {
 
         <div
           className="grid gap-2"
-          style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${compact ? 108 : 132}px, 1fr))` }}
+          style={{
+            gridTemplateColumns: `repeat(auto-fill, minmax(${compact ? 108 : 132}px, 1fr))`,
+          }}
         >
-          {themes.map(t => {
+          {themes.map((t) => {
             const active = t.id === themeId;
             return (
               <button
@@ -45,14 +48,16 @@ export const PCThemePicker: React.FC<{ compact?: boolean }> = ({ compact }) => {
                 title={t.description}
                 className="text-left rounded-md overflow-hidden border transition-transform hover:scale-[1.03]"
                 style={{
-                  borderColor: active ? 'var(--pc-accent, #6366f1)' : 'rgba(127,127,127,0.35)',
-                  boxShadow: active ? '0 0 0 2px var(--pc-accent, #6366f1)' : undefined,
+                  borderColor: active ? "var(--pc-accent, #6366f1)" : "rgba(127,127,127,0.35)",
+                  boxShadow: active ? "0 0 0 2px var(--pc-accent, #6366f1)" : undefined,
                 }}
               >
                 {/* Mini "monitor" preview painted from the theme's swatch. */}
                 <div
                   className="h-12 relative"
-                  style={{ background: `linear-gradient(135deg, ${t.preview.a} 0%, ${t.preview.b} 60%, ${t.preview.c} 100%)` }}
+                  style={{
+                    background: `linear-gradient(135deg, ${t.preview.a} 0%, ${t.preview.b} 60%, ${t.preview.c} 100%)`,
+                  }}
                 >
                   <div
                     className="absolute left-1.5 top-1.5 right-6 h-2 rounded-[1px]"
@@ -79,7 +84,7 @@ export const PCThemePicker: React.FC<{ compact?: boolean }> = ({ compact }) => {
         <div>
           <div className="text-xs font-bold uppercase tracking-wide opacity-70 mb-2">Wallpaper</div>
           <div className="flex flex-wrap gap-2">
-            {theme.wallpapers.map(w => (
+            {theme.wallpapers.map((w) => (
               <button
                 key={w.id}
                 onClick={() => setWallpaper(w.id)}
@@ -87,8 +92,10 @@ export const PCThemePicker: React.FC<{ compact?: boolean }> = ({ compact }) => {
                 className="rounded overflow-hidden border"
                 style={{
                   width: 84,
-                  borderColor: wallpaper.id === w.id ? 'var(--pc-accent, #6366f1)' : 'rgba(127,127,127,0.35)',
-                  boxShadow: wallpaper.id === w.id ? '0 0 0 2px var(--pc-accent, #6366f1)' : undefined,
+                  borderColor:
+                    wallpaper.id === w.id ? "var(--pc-accent, #6366f1)" : "rgba(127,127,127,0.35)",
+                  boxShadow:
+                    wallpaper.id === w.id ? "0 0 0 2px var(--pc-accent, #6366f1)" : undefined,
                 }}
               >
                 <div className="h-12" style={{ background: w.css }} />

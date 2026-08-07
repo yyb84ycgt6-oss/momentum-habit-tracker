@@ -19,7 +19,7 @@
  * Both are handled here once so call sites do not each need to remember.
  */
 
-import { bus } from './bus';
+import { bus } from "./bus";
 
 export interface StorageSuccess {
   ok: true;
@@ -27,7 +27,7 @@ export interface StorageSuccess {
 
 export interface StorageFailure {
   ok: false;
-  reason: 'quota' | 'unavailable' | 'error';
+  reason: "quota" | "unavailable" | "error";
   message: string;
 }
 
@@ -56,8 +56,8 @@ export function isQuotaError(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
   const e = err as Error & { code?: number; name: string };
   return (
-    e.name === 'QuotaExceededError' ||
-    e.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+    e.name === "QuotaExceededError" ||
+    e.name === "NS_ERROR_DOM_QUOTA_REACHED" ||
     e.code === 22 ||
     e.code === 1014
   );
@@ -67,7 +67,7 @@ function storage(): Storage | null {
   try {
     // Accessing localStorage throws outright in some privacy modes, so even
     // the reference has to be guarded.
-    return typeof localStorage === 'undefined' ? null : localStorage;
+    return typeof localStorage === "undefined" ? null : localStorage;
   } catch {
     return null;
   }
@@ -84,7 +84,7 @@ function storage(): Storage | null {
 export function safeGetJSON<T>(
   key: string,
   fallback: T,
-  validate?: (value: unknown) => boolean
+  validate?: (value: unknown) => boolean,
 ): T {
   const store = storage();
   if (!store) return fallback;
@@ -94,7 +94,7 @@ export function safeGetJSON<T>(
   } catch {
     return fallback;
   }
-  if (raw === null || raw === '') return fallback;
+  if (raw === null || raw === "") return fallback;
   try {
     const parsed = JSON.parse(raw) as unknown;
     if (validate && !validate(parsed)) return fallback;
@@ -107,7 +107,7 @@ export function safeGetJSON<T>(
 /** Common validators, so call sites do not hand-roll them inconsistently. */
 export const isArray = (v: unknown): v is unknown[] => Array.isArray(v);
 export const isObject = (v: unknown): v is Record<string, unknown> =>
-  typeof v === 'object' && v !== null && !Array.isArray(v);
+  typeof v === "object" && v !== null && !Array.isArray(v);
 
 /**
  * Write a JSON value. Never throws; returns what happened.
@@ -117,10 +117,18 @@ export const isObject = (v: unknown): v is Record<string, unknown> =>
  * high-frequency writes that would otherwise spam, and those callers are
  * expected to check the returned outcome instead.
  */
-export function safeSetJSON(key: string, value: unknown, opts: { silent?: boolean } = {}): StorageOutcome {
+export function safeSetJSON(
+  key: string,
+  value: unknown,
+  opts: { silent?: boolean } = {},
+): StorageOutcome {
   const store = storage();
   if (!store) {
-    return { ok: false, reason: 'unavailable', message: 'Storage is not available in this browser session.' };
+    return {
+      ok: false,
+      reason: "unavailable",
+      message: "Storage is not available in this browser session.",
+    };
   }
   let serialized: string;
   try {
@@ -130,7 +138,7 @@ export function safeSetJSON(key: string, value: unknown, opts: { silent?: boolea
     // without it the message is unactionable.
     return {
       ok: false,
-      reason: 'error',
+      reason: "error",
       message: `Could not serialize value for "${key}": ${(err as Error).message}`,
     };
   }
@@ -142,17 +150,17 @@ export function safeSetJSON(key: string, value: unknown, opts: { silent?: boolea
     const quota = isQuotaError(err);
     const outcome: StorageOutcome = {
       ok: false,
-      reason: quota ? 'quota' : 'error',
+      reason: quota ? "quota" : "error",
       message: quota
-        ? 'Storage is full. Recent changes were not saved. Export what matters, then remove old items.'
+        ? "Storage is full. Recent changes were not saved. Export what matters, then remove old items."
         : `Could not save "${key}": ${(err as Error).message}`,
     };
     if (!opts.silent) {
-      bus.emit('pc-notification', {
-        level: 'error',
-        title: quota ? 'Storage is full' : 'Could not save',
+      bus.emit("pc-notification", {
+        level: "error",
+        title: quota ? "Storage is full" : "Could not save",
         message: outcome.message,
-        source: 'storage',
+        source: "storage",
       });
     }
     return outcome;
@@ -192,7 +200,7 @@ export function measureStorage(topN = 5): StorageUsage {
     for (let i = 0; i < store.length; i++) {
       const key = store.key(i);
       if (key === null) continue;
-      const value = store.getItem(key) ?? '';
+      const value = store.getItem(key) ?? "";
       // UTF-16 code units: what the quota is actually counted in.
       const bytes = (key.length + value.length) * 2;
       usedBytes += bytes;

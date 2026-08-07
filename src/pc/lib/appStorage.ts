@@ -37,7 +37,7 @@ export interface AppStorageEncrypted {
 const listenersByNs = new Map<string, Set<Listener>>();
 
 function notify(ns: string): void {
-  listenersByNs.get(ns)?.forEach(l => l());
+  listenersByNs.get(ns)?.forEach((l) => l());
 }
 
 // Helpers for encryption (AES-GCM, matching secretsVault)
@@ -57,14 +57,14 @@ function base64ToBuffer(b64: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
-const ENCRYPTION_TAG = '__encrypted__:'; // marker for encrypted values
+const ENCRYPTION_TAG = "__encrypted__:"; // marker for encrypted values
 
 export function appStorage(namespace: string): AppStorage {
   const prefix = `${namespace}::`;
 
   return {
     get<T>(key: string, fallback: T): T {
-      if (typeof localStorage === 'undefined') return fallback;
+      if (typeof localStorage === "undefined") return fallback;
       const raw = localStorage.getItem(prefix + key);
       if (raw === null) return fallback;
       try {
@@ -75,7 +75,7 @@ export function appStorage(namespace: string): AppStorage {
     },
 
     set<T>(key: string, value: T): void {
-      if (typeof localStorage === 'undefined') return;
+      if (typeof localStorage === "undefined") return;
       try {
         localStorage.setItem(prefix + key, JSON.stringify(value));
       } catch (e) {
@@ -86,13 +86,13 @@ export function appStorage(namespace: string): AppStorage {
     },
 
     remove(key: string): void {
-      if (typeof localStorage === 'undefined') return;
+      if (typeof localStorage === "undefined") return;
       localStorage.removeItem(prefix + key);
       notify(namespace);
     },
 
     keys(): string[] {
-      if (typeof localStorage === 'undefined') return [];
+      if (typeof localStorage === "undefined") return [];
       const out: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
@@ -112,7 +112,7 @@ export function appStorage(namespace: string): AppStorage {
     },
 
     estimateBytes(): number {
-      if (typeof localStorage === 'undefined') return 0;
+      if (typeof localStorage === "undefined") return 0;
       let bytes = 0;
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
@@ -135,7 +135,7 @@ export function appStorageEncrypted(namespace: string, key: CryptoKey): AppStora
 
   return {
     async get<T>(keyName: string, fallback: T): Promise<T> {
-      if (typeof localStorage === 'undefined') return fallback;
+      if (typeof localStorage === "undefined") return fallback;
       const raw = localStorage.getItem(prefix + keyName);
       if (raw === null) return fallback;
 
@@ -148,11 +148,11 @@ export function appStorageEncrypted(namespace: string, key: CryptoKey): AppStora
       }
 
       try {
-        const parts = raw.slice(ENCRYPTION_TAG.length).split('|');
+        const parts = raw.slice(ENCRYPTION_TAG.length).split("|");
         if (parts.length !== 2) return fallback;
         const iv = base64ToBuffer(parts[0]);
         const encryptedData = base64ToBuffer(parts[1]);
-        const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, encryptedData);
+        const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, encryptedData);
         const json = new TextDecoder().decode(decrypted);
         return JSON.parse(json) as T;
       } catch (e) {
@@ -162,28 +162,31 @@ export function appStorageEncrypted(namespace: string, key: CryptoKey): AppStora
     },
 
     async set<T>(keyName: string, value: T): Promise<void> {
-      if (typeof localStorage === 'undefined') return;
+      if (typeof localStorage === "undefined") return;
       try {
         const json = JSON.stringify(value);
         const data = new TextEncoder().encode(json);
         const iv = crypto.getRandomValues(new Uint8Array(12));
-        const encryptedData = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
-        const encrypted = ENCRYPTION_TAG + bufferToBase64(iv) + '|' + bufferToBase64(encryptedData);
+        const encryptedData = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, data);
+        const encrypted = ENCRYPTION_TAG + bufferToBase64(iv) + "|" + bufferToBase64(encryptedData);
         localStorage.setItem(prefix + keyName, encrypted);
       } catch (e) {
-        console.error(`[appStorageEncrypted:${namespace}] encryption/write failed for "${keyName}":`, e);
+        console.error(
+          `[appStorageEncrypted:${namespace}] encryption/write failed for "${keyName}":`,
+          e,
+        );
       }
       notify(namespace);
     },
 
     async remove(keyName: string): Promise<void> {
-      if (typeof localStorage === 'undefined') return;
+      if (typeof localStorage === "undefined") return;
       localStorage.removeItem(prefix + keyName);
       notify(namespace);
     },
 
     keys(): string[] {
-      if (typeof localStorage === 'undefined') return [];
+      if (typeof localStorage === "undefined") return [];
       const out: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
@@ -203,7 +206,7 @@ export function appStorageEncrypted(namespace: string, key: CryptoKey): AppStora
     },
 
     estimateBytes(): number {
-      if (typeof localStorage === 'undefined') return 0;
+      if (typeof localStorage === "undefined") return 0;
       let bytes = 0;
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
