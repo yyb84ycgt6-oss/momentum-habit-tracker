@@ -31,7 +31,6 @@ import {
   FolderOpen,
   Gamepad2,
   Gauge,
-  Github,
   Grid2X2,
   HardDrive,
   Key,
@@ -479,16 +478,6 @@ export const APPS: AppDefinition[] = [
     bgColor: "bg-gradient-to-br from-blue-600 via-indigo-800 to-zinc-950 border border-blue-500/50",
     defaultSize: { width: 920, height: 680 },
     component: pick(() => import("./ported/CloudDeployApp"), "CloudDeployApp"),
-  },
-  {
-    id: "home",
-    name: "Github",
-    description: "Repository browser.",
-    icon: Github,
-    category: "dev",
-    bgColor: "bg-gradient-to-br from-zinc-700 via-zinc-900 to-black border border-zinc-600/40",
-    defaultSize: { width: 900, height: 660 },
-    component: pick(() => import("./ported/AppConnectorApp"), "AppConnectorApp"),
   },
 ];
 
