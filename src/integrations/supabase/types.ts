@@ -127,6 +127,93 @@ export type Database = {
         }
         Relationships: []
       }
+      pc_app_data: {
+        Row: {
+          id: string
+          key: string
+          namespace: string
+          updated_at: string
+          user_id: string
+          value: Json
+        }
+        Insert: {
+          id?: string
+          key: string
+          namespace: string
+          updated_at?: string
+          user_id: string
+          value: Json
+        }
+        Update: {
+          id?: string
+          key?: string
+          namespace?: string
+          updated_at?: string
+          user_id?: string
+          value?: Json
+        }
+        Relationships: []
+      }
+      pc_desktop_state: {
+        Row: {
+          revision: number
+          state: Json
+          theme_id: string
+          updated_at: string
+          user_id: string
+          wallpaper_by_theme: Json
+        }
+        Insert: {
+          revision?: number
+          state?: Json
+          theme_id?: string
+          updated_at?: string
+          user_id: string
+          wallpaper_by_theme?: Json
+        }
+        Update: {
+          revision?: number
+          state?: Json
+          theme_id?: string
+          updated_at?: string
+          user_id?: string
+          wallpaper_by_theme?: Json
+        }
+        Relationships: []
+      }
+      pc_notes: {
+        Row: {
+          body: string
+          created_at: string
+          folder: string
+          id: string
+          pinned: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          folder?: string
+          id?: string
+          pinned?: boolean
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          folder?: string
+          id?: string
+          pinned?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

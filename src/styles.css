@@ -1,8 +1,24 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+/* PC shell chrome — every selector is scoped to [data-pc-family], so this
+   stylesheet is inert until a non-default PC theme is active. */
+@import "./pc/themes/pc-themes.css";
 
 @custom-variant dark (&:is(.dark *));
+
+/* PC desktop palette. Ported from Jackie's PC `tailwind.config.js`, where
+   these lived under `theme.extend.colors.os`. Tailwind v4 reads them from
+   here instead, which is why `bg-os-bg` / `text-os-text` keep working in
+   every app component copied over unchanged. */
+@theme {
+  --color-os-bg: #1e1e2e;
+  --color-os-surface: #313244;
+  --color-os-text: #cdd6f4;
+  --color-os-accent: #89b4fa;
+
+  --animate-pulse-fast: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
 
 /* Momentum design system
  * Primary: deep teal #0F766E
@@ -199,3 +215,78 @@
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-up { animation: fade-up 500ms ease-out both; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PC desktop — surface rules
+   Ported from Jackie's PC `index.css`. The responsive rules there were
+   global and rewrote padding on every `.p-4`/`.p-6` in the document; here
+   they are scoped under `.pc-desktop-root` so they restyle the desktop
+   without reaching Momentum's landing page or auth screens.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.pc-desktop-root {
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Apps render real content — text inside a window stays selectable. */
+.pc-window-content {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+@media (max-width: 768px) {
+  .pc-desktop-root .draggable-window { max-height: 85vh; }
+  .pc-desktop-root .floating-nav { transform: scale(0.9); transform-origin: center; }
+}
+
+@media (max-height: 600px) {
+  .pc-desktop-root .draggable-window { max-height: 85vh; }
+}
+
+/* ── Compression-cycle "unfold" system ──────────────────────────────────
+   A widget "unfolds" from a compact capsule: each open grows the panel and
+   reveals a new layer of context, like origami opening one more fold.
+   Apply `.unfold-panel` to the growing container and `.unfold-layer` (with
+   a staggered `--unfold-delay`) to each block that should reveal in.      */
+@keyframes unfold-pop {
+  0%   { transform: scaleY(0.72) scaleX(0.94) translateY(6px); opacity: 0.4; filter: blur(2px); }
+  55%  { transform: scaleY(1.03) scaleX(1.01) translateY(-1px); opacity: 1; filter: blur(0); }
+  100% { transform: scaleY(1) scaleX(1) translateY(0); opacity: 1; filter: blur(0); }
+}
+
+@keyframes unfold-layer-reveal {
+  0%   { opacity: 0; transform: translateY(6px) scaleY(0.9); max-height: 0; }
+  100% { opacity: 1; transform: translateY(0) scaleY(1); max-height: 400px; }
+}
+
+.unfold-panel {
+  transform-origin: bottom right;
+  animation: unfold-pop 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: width 380ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 380ms ease;
+}
+
+.unfold-layer {
+  animation: unfold-layer-reveal 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--unfold-delay, 0ms);
+  overflow: hidden;
+}
+
+/* Desktop icon selection marquee. */
+.pc-marquee {
+  position: absolute;
+  border: 1px solid var(--color-os-accent);
+  background: color-mix(in oklab, var(--color-os-accent) 18%, transparent);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Boot / shutdown curtain. */
+@keyframes pc-boot-fade {
+  from { opacity: 1; }
+  to   { opacity: 0; visibility: hidden; }
+}
+.pc-boot-curtain { animation: pc-boot-fade 600ms ease-out 900ms both; }
