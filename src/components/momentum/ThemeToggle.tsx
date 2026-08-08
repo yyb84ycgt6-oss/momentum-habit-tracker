@@ -2,8 +2,8 @@ import { Moon, Sun, Monitor } from "lucide-react";
 import { useTheme, type Theme } from "@/lib/use-theme";
 
 const OPTS: { value: Theme; icon: typeof Sun; label: string }[] = [
-  { value: "light",  icon: Sun,     label: "Light"  },
-  { value: "dark",   icon: Moon,    label: "Dark"   },
+  { value: "light", icon: Sun, label: "Light" },
+  { value: "dark", icon: Moon, label: "Dark" },
   { value: "system", icon: Monitor, label: "System" },
 ];
 

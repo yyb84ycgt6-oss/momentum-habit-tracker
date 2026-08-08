@@ -281,14 +281,12 @@ export const FlipperZeroApp: React.FC = () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (activeTab === "firmware" && !latestRelease && !checkingFirmware) {
       checkLatestFirmware();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const handleFirmwareSourceChange = (sourceId: string) => {
@@ -305,7 +303,6 @@ export const FlipperZeroApp: React.FC = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoSync, btDevices, networkInfo, isOnline]);
 
   const handleAnalyzeAI = async (customContext?: string) => {

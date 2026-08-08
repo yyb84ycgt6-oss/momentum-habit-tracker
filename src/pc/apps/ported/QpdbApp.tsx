@@ -136,7 +136,7 @@ export const QpdbApp: React.FC = () => {
         }
         // Sequences (e.g. {WMEZ3E})
         else if (str[i] === "{") {
-          let endIdx = str.indexOf("}", i);
+          const endIdx = str.indexOf("}", i);
           if (endIdx === -1) {
             result.push({ type: "group_boundary", raw: "{" });
             i++;
@@ -177,7 +177,7 @@ export const QpdbApp: React.FC = () => {
     return parsed.map((el) => {
       if (el.type === "sequence" && el.chars) {
         // Sum the bits representation (3 bits per stem orientation)
-        let bitsString = el.chars.map((c) => c.direction.toString(2).padStart(3, "0")).join("");
+        const bitsString = el.chars.map((c) => c.direction.toString(2).padStart(3, "0")).join("");
         // Pack into standard 8-bit bytes
         const bytes: string[] = [];
         for (let k = 0; k < bitsString.length; k += 8) {

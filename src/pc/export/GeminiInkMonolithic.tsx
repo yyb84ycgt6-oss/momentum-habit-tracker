@@ -33,7 +33,10 @@ import type { LucideIcon } from "lucide-react";
 import { GoogleGenAI, Tool, Type, Modality } from "@google/genai";
 
 declare global {
-  var html2canvas: (element: HTMLElement, options?: any) => Promise<HTMLCanvasElement>;
+  var html2canvas: (
+    element: HTMLElement,
+    options?: Record<string, unknown>,
+  ) => Promise<HTMLCanvasElement>;
 }
 
 // ============================================================================
@@ -508,8 +511,16 @@ const InkLayer: React.FC<InkLayerProps> = ({ active, strokes, setStrokes, isProc
 
   const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!active || !isDrawing || isProcessing) return;
-    const getCoalescedEvents = (evt: any) =>
-      typeof evt.getCoalescedEvents === "function" ? evt.getCoalescedEvents() : [evt];
+    // Coalesced events are not in every browser's PointerEvent typing, so
+    // the capability is probed rather than assumed.
+    const getCoalescedEvents = (
+      evt: React.PointerEvent<HTMLCanvasElement>,
+    ): React.PointerEvent<HTMLCanvasElement>[] => {
+      const native = evt as unknown as { getCoalescedEvents?: () => PointerEvent[] };
+      return typeof native.getCoalescedEvents === "function"
+        ? (native.getCoalescedEvents() as unknown as React.PointerEvent<HTMLCanvasElement>[])
+        : [evt];
+    };
     const events = getCoalescedEvents(e);
     const rect = canvasRef.current!.getBoundingClientRect();
     for (let i = 0; i < events.length; i++) {
@@ -803,8 +814,8 @@ const SnakeGame: React.FC = () => {
     playerX: 0,
     playerW: 40,
     playerH: 20,
-    bullets: [] as any[],
-    enemies: [] as any[],
+    bullets: [] as { x: number; y: number; dy: number }[],
+    enemies: [] as { x: number; y: number; alive: boolean }[],
     keys: { left: false, right: false, space: false },
     lastShot: 0,
     lastSpawn: 0,
@@ -1175,7 +1186,7 @@ export const GeminiInkMiniApp: React.FC = () => {
         return isRoot ? null : undefined;
       }
       if (item.type === "folder" && item.contents) {
-        const res = deleteItemRecursively(item.contents as any, nameToDelete, false);
+        const res = deleteItemRecursively(item.contents, nameToDelete, false);
         if (res.deleted) deleted = true;
         return {
           ...item,
@@ -1185,7 +1196,9 @@ export const GeminiInkMiniApp: React.FC = () => {
       return item;
     });
     return {
-      newItems: (isRoot ? mappedItems : mappedItems.filter((i) => i !== undefined)) as any,
+      newItems: (isRoot
+        ? mappedItems
+        : mappedItems.filter((i) => i !== undefined)) as DesktopItem[],
       deleted,
     };
   };
@@ -1245,10 +1258,10 @@ export const GeminiInkMiniApp: React.FC = () => {
         let workingEmails = [...emails];
         let itemsChanged = false,
           emailsChanged = false;
-        let msgs: React.ReactNode[] = [];
+        const msgs: React.ReactNode[] = [];
 
         for (const call of calls) {
-          const args: any = call.args || {};
+          const args: Record<string, unknown> = call.args || {};
           if (call.name === "delete_item" && args.itemName) {
             const { newItems, deleted } = deleteItemRecursively(
               workingItems,

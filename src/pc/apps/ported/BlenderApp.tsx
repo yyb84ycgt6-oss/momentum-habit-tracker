@@ -247,12 +247,12 @@ export const BlenderApp: React.FC = () => {
       // Project 3D coordinates to 2D
       vertices.forEach((v) => {
         // Rotate around Y-axis
-        let x1 = v.x * cosY - v.z * sinY;
-        let z1 = v.x * sinY + v.z * cosY;
+        const x1 = v.x * cosY - v.z * sinY;
+        const z1 = v.x * sinY + v.z * cosY;
 
         // Rotate around X-axis
-        let y2 = v.y * cosX - z1 * sinX;
-        let z2 = v.y * sinX + z1 * cosX;
+        const y2 = v.y * cosX - z1 * sinX;
+        const z2 = v.y * sinX + z1 * cosX;
 
         // Simple perspective projection with Z-depth offset
         const depth = 6.0;

@@ -14,7 +14,15 @@ export interface HabitCardProps {
   onToggle: () => void | Promise<void>;
 }
 
-export function HabitCard({ name, description, icon, color, completed, streak, onToggle }: HabitCardProps) {
+export function HabitCard({
+  name,
+  description,
+  icon,
+  color,
+  completed,
+  streak,
+  onToggle,
+}: HabitCardProps) {
   const c = HABIT_COLORS[color] ?? HABIT_COLORS.teal;
   const Icon = iconFor(icon);
   const [animating, setAnimating] = useState(false);

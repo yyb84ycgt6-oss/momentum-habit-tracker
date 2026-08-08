@@ -35,10 +35,7 @@ export function Heatmap({ completedDates, days = 84 }: HeatmapProps) {
             <div
               key={cell.iso}
               title={`${cell.label}${cell.on ? " — done" : ""}`}
-              className={
-                "size-3.5 rounded-[4px] " +
-                (cell.on ? "bg-primary" : "bg-muted")
-              }
+              className={"size-3.5 rounded-[4px] " + (cell.on ? "bg-primary" : "bg-muted")}
             />
           ) : (
             <div key={`pad-${i}`} className="size-3.5" />

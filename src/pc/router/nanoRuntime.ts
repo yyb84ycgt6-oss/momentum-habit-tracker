@@ -42,14 +42,12 @@ export function utf8Bytes(text: string): number[] {
 
 /** FNV-1a 32-bit, identical to the Python forge's `_fnv1a`. */
 export function fnv1a(bytes: number[]): number {
-  // eslint-disable-next-line no-bitwise
   let h = 0x811c9dc5;
   for (const b of bytes) {
-    // eslint-disable-next-line no-bitwise
     h ^= b;
     h = Math.imul(h, 0x01000193) >>> 0;
   }
-  // eslint-disable-next-line no-bitwise
+
   return h >>> 0;
 }
 

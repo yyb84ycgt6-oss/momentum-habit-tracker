@@ -25,14 +25,12 @@ export function decodeBase64(input: string): Uint8Array {
     if (c1 === undefined) {
       throw new RouterArtifactError("Artifact weights are truncated base64.");
     }
-    // eslint-disable-next-line no-bitwise
+
     out[outIndex++] = (c0 << 2) | (c1 >> 4);
     if (c2 >= 0) {
-      // eslint-disable-next-line no-bitwise
       out[outIndex++] = ((c1 & 15) << 4) | (c2 >> 2);
     }
     if (c3 >= 0) {
-      // eslint-disable-next-line no-bitwise
       out[outIndex++] = ((c2 & 3) << 6) | c3;
     }
   }

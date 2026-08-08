@@ -222,14 +222,15 @@ class VoiceCommandService {
         bus.emit("launch-app", { appId: command.payload?.appId });
         break;
 
-      case "trigger_automation":
-        // Find and run automation rule
+      // Braced: a bare `const` here is scoped to the whole switch, so it
+      // is visible-but-uninitialised in every sibling case.
+      case "trigger_automation": {
         const ruleId = command.payload?.ruleId;
         if (ruleId) {
-          // Trigger automation (would need to wire to automationEngine)
           bus.emit("automation-trigger", { ruleId });
         }
         break;
+      }
 
       case "dictate":
         bus.emit("voice-dictate", { text: transcript });

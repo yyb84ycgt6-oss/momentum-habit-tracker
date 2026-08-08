@@ -213,7 +213,7 @@ const updateVaultBackupRotation = async (
   if (!lastRotation || now - lastRotation.timestamp > rotationInterval) {
     // Check for large changes
     const isLargeChange = detectLargeChange(totalCompressedSizeMB, largeChangeThreshold);
-    let detection = getLargeChangeDetection();
+    const detection = getLargeChangeDetection();
 
     // Cycle through slots: 1→2→3→1, but skip 3 if large change detected
     let nextSlot: 1 | 2 | 3 =

@@ -662,7 +662,7 @@ SHORTCUTS
           const entries = await termFsList(toRel(cwd));
           const showAll = args.includes("-a") || args.includes("-la") || args.includes("-al");
           const long = args.includes("-l") || args.includes("-la") || args.includes("-al");
-          let list = showAll ? entries : entries.filter((n) => !n.name.startsWith("."));
+          const list = showAll ? entries : entries.filter((n) => !n.name.startsWith("."));
           list.sort((a, b) => a.name.localeCompare(b.name));
           if (long) {
             const lines = [`total ${list.length}`];
