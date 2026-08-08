@@ -553,6 +553,64 @@ ok(
   `pc-set-theme → ${themeTravel}`,
 );
 
+// ── The agent lane ───────────────────────────────────────────────────────
+const agentLane = await page.evaluate(async () => {
+  const t = await import("/src/pc/lib/backroadTool.ts");
+  const seen = [];
+  const off = (await import("/src/pc/lib/bus.ts")).bus.on("launch-app", ({ appId }) =>
+    seen.push(appId),
+  );
+  const listed = await t.runBackroadTool("list_destinations", { query: "cortex" });
+  const opened = await t.runBackroadTool("open_destination", { address: "app:cortex" });
+  // Worst case: a route with a dead stop in the middle.
+  const route = await t.runBackroadTool("open_route", {
+    addresses: ["app:speed_racer", "app:does_not_exist", "app:cartographer"],
+  });
+  const wrong = await t.runBackroadTool("open_destination", { address: "app:kortexx" });
+  off();
+  return { listed, opened, route, wrong, seen };
+});
+ok(
+  "31. An agent can list destinations before choosing one",
+  agentLane.listed.ok && agentLane.listed.destinations.some((d) => d.address === "app:cortex"),
+  `${agentLane.listed.count} matched`,
+);
+ok(
+  "32. An agent goes straight to an address and is told what opened",
+  agentLane.opened.ok && agentLane.opened.opened === "app:cortex",
+  agentLane.opened.detail,
+);
+ok(
+  "33. A route survives a broken stop and still delivers the rest",
+  agentLane.route.detail === "Opened 2 of 3." &&
+    agentLane.seen.includes("speed_racer") &&
+    agentLane.seen.includes("cartographer"),
+  `${agentLane.route.detail} — reached ${agentLane.seen.join(", ")}`,
+);
+ok(
+  "34. A wrong address answers with a correction, not an exception",
+  agentLane.wrong.ok === false && (agentLane.wrong.alternatives ?? []).includes("app:cortex"),
+  agentLane.wrong.detail,
+);
+
+const advised = await page.evaluate(async () => {
+  const u = await import("/src/pc/lib/understudy/predictor.ts");
+  const b = await import("/src/pc/lib/backroad.ts");
+  u.resetModel();
+  for (let i = 0; i < 4; i += 1) {
+    u.record("cortex");
+    u.record("speed_racer");
+  }
+  return (await b.travel("app:cortex")).next;
+});
+ok(
+  "35. Arriving somewhere tells the agent what usually comes next, and why",
+  advised.length > 0 &&
+    advised[0].source === "observed" &&
+    advised[0].address === "app:speed_racer",
+  advised.length ? `${advised[0].address} (${advised[0].source})` : "no hops",
+);
+
 await page.screenshot({ path: "ten.png" });
 
 console.log("\n" + "─".repeat(50));

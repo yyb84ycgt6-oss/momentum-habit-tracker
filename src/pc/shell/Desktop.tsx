@@ -48,12 +48,13 @@ import {
   startScheduler as startAmbientAgents,
   stopScheduler as stopAmbientAgents,
 } from "../lib/ambient/agents";
-import { initUnderstudy } from "../lib/understudy/predictor";
+import { initUnderstudy, predictNext } from "../lib/understudy/predictor";
 import {
   registerApps,
   registerThemes,
   registerProviders,
   registerGlobalVerbs,
+  setNextHopAdvisor,
 } from "../lib/backroad";
 import { allProviders } from "../lib/ai/catalog";
 import { DesktopProvider, type DesktopApi } from "./DesktopContext";
@@ -287,6 +288,22 @@ export function Desktop({ onSignOut }: { onSignOut: () => void }) {
     registerThemes(themes.map((t) => ({ id: t.id, label: t.label, era: t.era })));
     registerProviders(allProviders().map((p) => ({ id: p.id, label: p.label })));
     registerGlobalVerbs();
+
+    // What tends to follow what, so an agent arriving somewhere is told what
+    // is usually needed next. Observed from real use by the Understudy, never
+    // a dependency graph written by hand — a made-up dependency is worse than
+    // none, because an agent acts on it.
+    setNextHopAdvisor((address) =>
+      address.startsWith("app:")
+        ? predictNext(address.slice(4), 3).map((p) => ({
+            address: `app:${p.appId}`,
+            label: p.appId.replace(/_/g, " "),
+            source: "observed" as const,
+            confidence: p.confidence,
+          }))
+        : [],
+    );
+    return () => setNextHopAdvisor(null);
   }, [themes]);
 
   /* ── always-on engines ─────────────────────────────────────────────── */
