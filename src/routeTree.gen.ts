@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDesktopRouteImport } from './routes/_authenticated/desktop'
+import { Route as ApiGeminiGenerateRouteImport } from './routes/api/gemini/generate'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -39,18 +40,25 @@ const AuthenticatedDesktopRoute = AuthenticatedDesktopRouteImport.update({
   path: '/desktop',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiGeminiGenerateRoute = ApiGeminiGenerateRouteImport.update({
+  id: '/api/gemini/generate',
+  path: '/api/gemini/generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/desktop': typeof AuthenticatedDesktopRoute
+  '/api/gemini/generate': typeof ApiGeminiGenerateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/desktop': typeof AuthenticatedDesktopRoute
+  '/api/gemini/generate': typeof ApiGeminiGenerateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -59,12 +67,18 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/desktop': typeof AuthenticatedDesktopRoute
+  '/api/gemini/generate': typeof ApiGeminiGenerateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/sitemap.xml' | '/desktop'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/sitemap.xml'
+    | '/desktop'
+    | '/api/gemini/generate'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/sitemap.xml' | '/desktop'
+  to: '/' | '/auth' | '/sitemap.xml' | '/desktop' | '/api/gemini/generate'
   id:
     | '__root__'
     | '/'
@@ -72,6 +86,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/_authenticated/desktop'
+    | '/api/gemini/generate'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -79,6 +94,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiGeminiGenerateRoute: typeof ApiGeminiGenerateRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -118,6 +134,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDesktopRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/gemini/generate': {
+      id: '/api/gemini/generate'
+      path: '/api/gemini/generate'
+      fullPath: '/api/gemini/generate'
+      preLoaderRoute: typeof ApiGeminiGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -137,6 +160,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiGeminiGenerateRoute: ApiGeminiGenerateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

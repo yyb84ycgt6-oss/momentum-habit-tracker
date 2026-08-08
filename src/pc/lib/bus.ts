@@ -33,12 +33,67 @@ export interface BusChannels {
   };
   /** Cloud-sync lifecycle updates from `lib/sync.ts`. */
   "cloud-sync-status": { status: "idle" | "syncing" | "error"; message?: string };
+  /** Cloud-sync enable toggle changed. */
+  "cloud-sync-enabled-changed": { enabled: boolean };
+  /** Offline sync queue changed (lib/idb.ts). */
+  "sync-queue-updated": { pending: number };
+  /** Open the nested router menu — the front door manual. */
+  "open-router-menu": void;
+
+  /* ── capabilities ────────────────────────────────────────────────────── */
+  /** A capability grant was changed in the Permission Broker. */
+  "permission-changed": { scope: string; capability: string; granted: boolean };
+  /** A capability check was denied — surfaced for the Notification Center. */
+  "permission-denied": { scope: string; capability: string; detail?: string };
+
+  /* ── automation & scheduling ─────────────────────────────────────────── */
+  /** An automation rule fired (lib/automation.ts). */
+  "automation-run": { ruleId: string; name: string; ok: boolean; detail?: string };
+  /** Fire an automation rule directly (voice commands, etc.). */
+  "automation-trigger": { ruleId: string };
+  /** A scheduled job fired (lib/scheduler.ts). */
+  "scheduler-run": { jobId: string; name: string; ok: boolean; detail?: string };
+  /** A failed activity is being retried (lib/activityCenter.ts). */
+  "activity-retry": { activityId: string; retryCount: number };
+  /** Restore a saved desktop layout (lib/workspaceProfiles.ts). */
+  "restore-workspace-profile": { profile: unknown };
+
+  /* ── agents ──────────────────────────────────────────────────────────── */
+  /** Cross-pod message for the agent team orchestrator (dynamic shape). */
+  "pod-message": unknown;
+  /** A multi-agent team run kicked off. */
+  "team-execution-started": { executionId: string; name: string; goal?: string; roles?: unknown };
+  /** A message produced by an agent during a team run (dynamic shape). */
+  "agent-message": unknown;
+  /** A team-run task moved to a new phase. */
+  "task-status-changed": { taskId: string; phase: string; executionId?: string };
+
+  /* ── clipboard & voice ───────────────────────────────────────────────── */
+  "clipboard-copied": { dataType: string; sourceApp?: string; length?: number };
+  "clipboard-pasted": { dataType: string; destinationApp?: string; sourceApp?: string };
+  "voice-state-changed": { state: string };
+  "voice-transcript": { interim?: string; final?: string; confidence?: number };
+  "voice-error": { error: string };
+  "voice-woken": { transcript: string; confidence: number };
+  "voice-dictate": { text: string };
+  "voice-command-executed": {
+    commandId: string;
+    keyword: string;
+    transcript: string;
+    intent?: string;
+  };
+
+  /* ── app lifecycle ───────────────────────────────────────────────────── */
+  /** An app reported a fatal error (caught by the window error boundary). */
+  "app-error": { appId: string; error: unknown; timestamp: number };
+  /** An app's stored state was reset (lib/appHealthMonitor.ts). */
+  "app-reset": { appId: string; timestamp: number };
+
+  /* ── Momentum ────────────────────────────────────────────────────────── */
   /** A habit was logged or unlogged — lets any app react to real progress. */
   "habit-logged": { habitId: string; date: string; logged: boolean };
   /** Habit data changed shape (created/edited/archived/deleted). */
   "habits-changed": void;
-  /** An app reported a fatal error (caught by the window error boundary). */
-  "app-error": { appId: string; error: unknown; timestamp: number };
   /** Shut the desktop down / lock the session. */
   "shut-down": void;
 }

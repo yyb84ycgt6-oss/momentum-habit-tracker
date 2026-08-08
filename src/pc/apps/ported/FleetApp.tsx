@@ -1,0 +1,226 @@
+import React, { useCallback, useMemo, useState } from "react";
+import { Cpu, Moon, Zap, AlertTriangle } from "lucide-react";
+import type { AskOutcome } from "@/pc/fleet/fleetService";
+import { defaultFleet, fleetAuditSnapshot } from "@/pc/fleet/defaultFleet";
+import type { FleetTier } from "@/pc/fleet/types";
+import { SpecialistRouterRegistry } from "@/pc/fleet/specialistRouter";
+import demoArtifact from "@/pc/router/router-fixture-v1.json";
+import { auditFleet, type AuditReport } from "@/pc/supervision/routerAudit";
+import { renderBriefing, briefingHeadline } from "@/pc/supervision/briefing";
+import type { RouterArtifact } from "@/pc/router/types";
+
+/**
+ * Fleet — see what is thinking and what it costs.
+ *
+ * A thin View over FleetService. It makes no residency decision and does no RAM
+ * accounting; it dispatches intents and renders the service's projection. The
+ * number that matters is live RAM, because the entire design rests on dormant
+ * members costing zero.
+ */
+
+const TIER_LABEL: Record<FleetTier, string> = {
+  coordinator: "Coordinator",
+  assistant: "Assistant",
+  specialist: "Specialist",
+};
+
+export const FleetApp: React.FC = () => {
+  // The shared fleet, so what this shows and what supervision audits are
+  // the same thing rather than two drifting copies.
+  const fleet = defaultFleet;
+  // A real Router Forge artifact, trained by the Python forge and verified
+  // byte-identical against it by the parity fixture. It labels text
+  // cook/tech, so those map onto the matching specialists.
+  const routers = useMemo(() => {
+    const reg = new SpecialistRouterRegistry();
+    try {
+      reg.attach("demo", demoArtifact.artifacts.nano, {
+        cook: "spec-cooking",
+        tech: "spec-physics",
+      });
+    } catch {
+      // A bad artifact must not take the app down; the fleet still works by
+      // declared domain, it just cannot classify free text.
+    }
+    return reg;
+  }, []);
+  const [tick, setTick] = useState(0);
+  const [question, setQuestion] = useState("my gpu driver keeps crashing");
+  const [outcome, setOutcome] = useState<AskOutcome | null>(null);
+  const [classified, setClassified] = useState<{ label: string; confidence: number } | null>(null);
+  const [audit, setAudit] = useState<AuditReport | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const refresh = useCallback(() => setTick((t) => t + 1), []);
+  const members = useMemo(() => fleet.list(), [fleet, tick]);
+  const currentMB = useMemo(() => fleet.currentMB(), [fleet, tick]);
+
+  const ask = () => {
+    const text = question.trim();
+    // Classify the actual question rather than trusting a typed domain name.
+    // The artifact is woken only for this call and slept immediately, which is
+    // the same dormancy rule the fleet members follow.
+    routers.wake("demo");
+    const routed = routers.route("demo", text);
+    const result = routers.classify("demo", text);
+    routers.sleep("demo");
+
+    setClassified(result ? { label: result.label, confidence: result.confidence } : null);
+    const target = routed ? fleet.list().find((m) => m.id === routed.memberId)?.domain : undefined;
+    setOutcome(fleet.ask((target ?? text).toLowerCase(), { assistants: 2 }));
+    refresh();
+  };
+
+  const runAudit = () => {
+    // Deterministic and offline: no model has to be reachable for the user to
+    // learn their fleet is dropping questions.
+    setAudit(auditFleet(fleetAuditSnapshot(fleet)));
+  };
+
+  const copyBriefing = async () => {
+    if (!audit) return;
+    const text = renderBriefing(audit, {
+      trigger: "manual review from the Fleet app",
+      at: new Date().toISOString(),
+    });
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard can be denied; the briefing is still rendered below so it
+      // can be selected by hand rather than being lost.
+      setCopied(false);
+    }
+  };
+
+  const toggle = (id: string) => {
+    if (fleet.isAwake(id)) fleet.sleep(id);
+    else fleet.wake(id);
+    refresh();
+  };
+
+  return (
+    <div className="h-full w-full flex flex-col bg-zinc-950 text-zinc-200">
+      <div className="px-3 py-2 border-b border-zinc-800 shrink-0">
+        <div className="flex items-center gap-2">
+          <Cpu size={15} className="text-zinc-500 shrink-0" />
+          <span className="text-sm flex-1">Agent fleet</span>
+          <span className="text-[11px] text-zinc-400 tabular-nums">{currentMB} MB active</span>
+        </div>
+        <p className="text-[11px] text-zinc-500 mt-1">
+          {members.length} members registered. A member that is not thinking costs nothing.
+        </p>
+      </div>
+
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-zinc-800 shrink-0">
+        <input
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && ask()}
+          placeholder="Ask anything — a router artifact classifies it"
+          className="flex-1 bg-zinc-900 border border-zinc-800 rounded px-2 py-1.5 text-sm outline-none placeholder-zinc-600"
+        />
+        <button onClick={ask} className="px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-sm">
+          Route
+        </button>
+        <button
+          onClick={runAudit}
+          title="Check the fleet for broken routing"
+          className="px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-sm"
+        >
+          Audit
+        </button>
+      </div>
+
+      {audit && (
+        <div className="px-3 py-2 border-b border-zinc-800 shrink-0 text-[11px]">
+          <div className="flex items-center gap-2 mb-1">
+            <span className={audit.healthy ? "text-emerald-400" : "text-amber-400"}>
+              {briefingHeadline(audit)}
+            </span>
+            <button
+              onClick={copyBriefing}
+              className="ml-auto px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 shrink-0"
+            >
+              {copied ? "Copied" : "Copy briefing"}
+            </button>
+          </div>
+          {audit.findings.slice(0, 4).map((f) => (
+            <div key={f.subject + f.code} className="text-zinc-500 leading-snug">
+              <span className={f.severity === "critical" ? "text-amber-400/90" : "text-zinc-400"}>
+                {f.subject}
+              </span>{" "}
+              {f.summary}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {outcome && (
+        <div className="px-3 py-2 border-b border-zinc-800 shrink-0 text-[11px]">
+          {outcome.error ? (
+            <div className="flex items-start gap-1.5 text-amber-400/90">
+              <AlertTriangle size={12} className="mt-px shrink-0" />
+              <span>{outcome.error}</span>
+            </div>
+          ) : (
+            <>
+              {classified && (
+                <div className="text-zinc-400 mb-1">
+                  Router artifact says <span className="text-emerald-400">{classified.label}</span>{" "}
+                  <span className="text-zinc-600">
+                    ({Math.round(classified.confidence * 100)}% confident)
+                  </span>
+                </div>
+              )}
+              <div className="text-zinc-500 mb-1">
+                Peak {outcome.peakMB} MB across {outcome.steps.length} hops
+              </div>
+              <div className="flex flex-wrap items-center gap-1">
+                {outcome.steps.map((s, i) => (
+                  <span key={`${s.memberId}-${i}`} className="text-zinc-400">
+                    {i > 0 && <span className="text-zinc-700 mr-1">→</span>}
+                    {s.memberId}
+                    <span className="text-zinc-600"> ({s.costMB} MB)</span>
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto">
+        {members.map((m) => {
+          const awake = fleet.isAwake(m.id);
+          return (
+            <button
+              key={m.id}
+              onClick={() => toggle(m.id)}
+              className="w-full flex items-center gap-2 px-3 py-2 border-b border-zinc-800/60 text-left hover:bg-zinc-900/60"
+            >
+              {awake ? (
+                <Zap size={13} className="text-emerald-400 shrink-0" />
+              ) : (
+                <Moon size={13} className="text-zinc-700 shrink-0" />
+              )}
+              <span className="flex-1 min-w-0">
+                <span className="block text-sm truncate">{m.domain}</span>
+                <span className="block text-[11px] text-zinc-500">
+                  {TIER_LABEL[m.tier]}
+                  {m.pinned && " · stays warm"}
+                </span>
+              </span>
+              <span className="text-[11px] tabular-nums shrink-0 text-zinc-500">
+                {awake ? `${m.activeMB} MB` : "0 MB"}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default FleetApp;

@@ -1,10 +1,15 @@
 {
   "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts", "eslint.config.js"],
+  // src/pc/export holds reference documents the Cybernetic Export app ships to
+  // the user as text (imported with Vite's `?raw`). They are payload, not
+  // source — one is a standalone monolith that imports packages this project
+  // deliberately does not depend on — so they are excluded from the program.
+  "exclude": ["src/pc/export"],
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",
     "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["vite/client"],
 
     /* Bundler mode */
