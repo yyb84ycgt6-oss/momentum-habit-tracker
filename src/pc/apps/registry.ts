@@ -39,6 +39,7 @@ import {
   Copy,
   Cpu,
   Database,
+  Dna,
   DollarSign,
   Eye,
   EyeOff,
@@ -54,6 +55,7 @@ import {
   History,
   Key,
   Layers,
+  Radar,
   LayoutDashboard,
   LayoutGrid,
   LineChart,
@@ -82,6 +84,7 @@ import {
   Siren,
   Sliders,
   Sparkles,
+  Trophy,
   Swords,
   Target,
   Terminal as TerminalIcon,
@@ -120,18 +123,36 @@ export interface AppDefinition {
   defaultSize: { width: number; height: number };
   /** Pinned to the desktop surface for a brand-new user. */
   defaultOnDesktop?: boolean;
-  component: LazyExoticComponent<ComponentType<Record<string, never>>>;
+  component: PreloadableLazy;
 }
 
 /** Narrows a module with any export shape down to what `lazy` expects. */
 type AnyComponent = ComponentType<Record<string, never>>;
-function pick(loader: () => Promise<Record<string, unknown>>, exportName: string) {
-  return lazy(async () => {
+
+/**
+ * A lazy app that can also be fetched ahead of time.
+ *
+ * `React.lazy` swallows its loader, so nothing outside can warm an app's
+ * chunk before the user clicks. Keeping a reference to it lets the Understudy
+ * prefetch the app it expects next — the chunk is already in memory when the
+ * click lands, instead of a spinner.
+ */
+export type PreloadableLazy = LazyExoticComponent<AnyComponent> & {
+  preload: () => Promise<unknown>;
+};
+
+function pick(loader: () => Promise<Record<string, unknown>>, exportName: string): PreloadableLazy {
+  const resolve = async () => {
     const mod = await loader();
     const found = (mod[exportName] ?? mod.default) as AnyComponent | undefined;
     if (!found) throw new Error(`App module has no "${exportName}" or default export`);
     return { default: found };
-  });
+  };
+  const C = lazy(resolve) as PreloadableLazy;
+  let started: Promise<unknown> | null = null;
+  // Memoized: a repeated prefetch must not re-issue the network request.
+  C.preload = () => (started ??= resolve().catch(() => undefined));
+  return C;
 }
 
 export const APPS: AppDefinition[] = [
@@ -1300,6 +1321,125 @@ export const APPS: AppDefinition[] = [
     bgColor: "bg-gradient-to-br from-cyan-500 via-blue-800 to-zinc-950 border border-cyan-400/40",
     defaultSize: { width: 860, height: 620 },
     component: pick(() => import("./ported/SlidesApp"), "SlidesApp"),
+  },
+  /* ── The ten: three shared foundations, ten surfaces ──────────────────
+     Six of them read the same call telemetry and three read the same bus
+     capture, so the substrate is shared rather than rebuilt ten times. */
+  {
+    id: "ai_providers",
+    name: "AI Providers",
+    description: "Every provider and model the gateway can reach, live.",
+    icon: Boxes,
+    category: "ai",
+    bgColor: "bg-gradient-to-br from-cyan-600 via-blue-900 to-zinc-950 border border-cyan-500/40",
+    defaultSize: { width: 900, height: 700 },
+    component: pick(() => import("./ported/AiProvidersApp"), "AiProvidersApp"),
+  },
+  {
+    id: "budget_radar",
+    name: "Budget Radar",
+    description: "Spend and quota, per provider and per key.",
+    icon: Radar,
+    category: "ai",
+    bgColor:
+      "bg-gradient-to-br from-emerald-600 via-teal-900 to-zinc-950 border border-emerald-500/40",
+    defaultSize: { width: 720, height: 680 },
+    component: pick(() => import("./ported/BudgetRadarApp"), "BudgetRadarApp"),
+  },
+  {
+    id: "colosseum",
+    name: "Colosseum",
+    description: "Many models, one prompt, judged blind.",
+    icon: Trophy,
+    category: "ai",
+    bgColor:
+      "bg-gradient-to-br from-amber-500 via-orange-900 to-zinc-950 border border-amber-400/40",
+    defaultSize: { width: 900, height: 700 },
+    component: pick(() => import("./ported/ColosseumApp"), "ColosseumApp"),
+  },
+  {
+    id: "ambient_agents",
+    name: "Ambient Agents",
+    description: "Agents that run on a schedule, not on a click.",
+    icon: Bot,
+    category: "ai",
+    bgColor: "bg-gradient-to-br from-sky-600 via-blue-900 to-zinc-950 border border-sky-500/40",
+    defaultSize: { width: 760, height: 700 },
+    component: pick(() => import("./ported/AmbientAgentsApp"), "AmbientAgentsApp"),
+  },
+  {
+    id: "bus_recorder",
+    name: "Bus Recorder",
+    description: "Record, inspect and replay what the desktop did.",
+    icon: Activity,
+    category: "ops",
+    bgColor: "bg-gradient-to-br from-rose-600 via-red-900 to-zinc-950 border border-rose-500/40",
+    defaultSize: { width: 820, height: 680 },
+    component: pick(() => import("./ported/BusRecorderApp"), "BusRecorderApp"),
+  },
+  {
+    id: "choreography",
+    name: "Choreography",
+    description: "Named scenes that open a set of apps together.",
+    icon: Grid2X2,
+    category: "productivity",
+    bgColor:
+      "bg-gradient-to-br from-violet-600 via-purple-900 to-zinc-950 border border-violet-500/40",
+    defaultSize: { width: 700, height: 660 },
+    component: pick(() => import("./ported/ChoreographyApp"), "ChoreographyApp"),
+  },
+  {
+    id: "speed_racer",
+    name: "Speed Racer",
+    description: "Measured provider latency, not advertised latency.",
+    icon: Gauge,
+    category: "ai",
+    bgColor: "bg-gradient-to-br from-lime-500 via-green-900 to-zinc-950 border border-lime-500/40",
+    defaultSize: { width: 800, height: 680 },
+    component: pick(() => import("./ported/SpeedRacerApp"), "SpeedRacerApp"),
+  },
+  {
+    id: "cartographer",
+    name: "Cartographer",
+    description: "The map of what actually talks to what.",
+    icon: Compass,
+    category: "ops",
+    bgColor: "bg-gradient-to-br from-teal-500 via-cyan-900 to-zinc-950 border border-teal-400/40",
+    defaultSize: { width: 860, height: 680 },
+    component: pick(() => import("./ported/CartographerApp"), "CartographerApp"),
+  },
+  {
+    id: "prompt_genome",
+    name: "Prompt Genome",
+    description: "Version control for prompts, with head-to-head evidence.",
+    icon: Dna,
+    category: "ai",
+    bgColor:
+      "bg-gradient-to-br from-fuchsia-600 via-pink-900 to-zinc-950 border border-fuchsia-500/40",
+    defaultSize: { width: 900, height: 700 },
+    component: pick(() => import("./ported/PromptGenomeApp"), "PromptGenomeApp"),
+  },
+  {
+    id: "cortex",
+    name: "Offline Cortex",
+    description: "Answers kept, so the machine still speaks with no network.",
+    icon: Brain,
+    category: "ai",
+    bgColor:
+      "bg-gradient-to-br from-purple-600 via-fuchsia-900 to-zinc-950 border border-purple-500/40",
+    defaultSize: { width: 760, height: 720 },
+    component: pick(() => import("./ported/CortexApp"), "CortexApp"),
+  },
+  {
+    id: "understudy",
+    name: "The Understudy",
+    description: "Learns which app follows which, and warms the next one.",
+    icon: Sparkles,
+    category: "system",
+    bgColor:
+      "bg-gradient-to-br from-indigo-500 via-violet-900 to-zinc-950 border border-indigo-400/40",
+    defaultSize: { width: 720, height: 720 },
+    component: pick(() => import("./ported/UnderstudyApp"), "UnderstudyApp"),
   },
 ];
 

@@ -276,6 +276,13 @@ class ModelRouter {
   /**
    * Record actual usage (called after API response)
    */
+  /** True when this router keeps stats for `provider`. Callers on the
+   *  gateway reach providers this router never modelled; asking first is
+   *  how they avoid reporting a call as recorded when it was dropped. */
+  public knowsProvider(provider: string): provider is ModelProvider {
+    return this.usageStats.has(provider as ModelProvider);
+  }
+
   public recordUsage(provider: ModelProvider, tokensUsed: number, actualCost: number): void {
     const stats = this.usageStats.get(provider);
     if (stats) {

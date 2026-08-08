@@ -1,16 +1,27 @@
+import { chat, type ChatMessage } from "./ai/gateway";
+import { getApiKey } from "./ai/catalog";
+
 /**
  * Gemini client — the browser half.
  *
- * Ported from Jackie's PC. The client was already a thin `fetch` wrapper
- * around a server relay, so the transport moved across unchanged; only the
- * endpoint differs (a TanStack Start server route instead of PC's Express
- * host). See `src/routes/api/gemini/generate.ts` for the server half.
+ * ~25 apps call `getAiClient().models.generateContent(...)`. That used to
+ * POST to `/api/gemini/generate`, a route that only answers when the server
+ * half is deployed and configured — so on a static build every one of those
+ * apps failed the same way Jackie's chat did.
  *
- * `@google/genai` is deliberately NOT a dependency here. PC imported it only
- * for the `Tool` type and the `Type` enum used in tool schemas — pulling in
- * the whole SDK client-side to get four string constants is not a trade
- * worth making, so the shapes are declared locally. They are the wire format
- * Gemini already expects, so the server relay passes them through untouched.
+ * Rather than edit 25 call sites, this translates the Gemini-shaped request
+ * into a `chat()` through the gateway. Every app inherits the whole provider
+ * chain, the keyring and per-key rotation without knowing any of it exists.
+ *
+ * ONE HONEST LIMIT: function calling is Gemini-specific. When a request
+ * carries tools we go straight to Gemini's native endpoint so the tool
+ * contract survives; with no Gemini key we fall back to a text answer and
+ * return no function calls rather than pretending otherwise.
+ *
+ * `@google/genai` is deliberately NOT a dependency. PC imported it for the
+ * `Tool` type and the `Type` enum — pulling the whole SDK client-side for
+ * four string constants is not a trade worth making, so the shapes are
+ * declared locally in the wire format Gemini already expects.
  */
 
 /** Schema primitive names, matching the Gemini function-calling wire format. */
@@ -45,13 +56,74 @@ export interface GeminiFunctionCall {
   args: Record<string, unknown>;
 }
 
-export const MODEL_NAME = "gemini-3-flash-preview";
+/** A model that exists. The previous id was invented and 404'd on every call. */
+export const MODEL_NAME = "gemini-2.5-flash";
+
+interface GeminiPart {
+  text?: string;
+  /** Images, for the ink-gesture flow in App.tsx. */
+  inlineData?: { mimeType: string; data: string };
+  [k: string]: unknown;
+}
+interface GeminiContent {
+  role?: string;
+  parts?: GeminiPart[];
+  [k: string]: unknown;
+}
 
 interface GenerateRequest {
   model?: string;
-  contents?: unknown;
-  config?: unknown;
+  contents?: string | (GeminiContent | GeminiPart | string)[] | GeminiContent;
+  config?: {
+    tools?: unknown;
+    systemInstruction?: unknown;
+    temperature?: number;
+    maxOutputTokens?: number;
+    [k: string]: unknown;
+  };
   [key: string]: unknown;
+}
+
+/** Flatten Gemini's `contents` (string | object | array) into chat messages. */
+function toMessages(req: GenerateRequest): ChatMessage[] {
+  const messages: ChatMessage[] = [];
+
+  const sys = req.config?.systemInstruction;
+  if (typeof sys === "string" && sys.trim()) {
+    messages.push({ role: "system", content: sys });
+  } else if (sys && typeof sys === "object") {
+    const parts = (sys as { parts?: GeminiPart[] }).parts ?? [];
+    const text = parts
+      .map((p) => p.text ?? "")
+      .join("")
+      .trim();
+    if (text) messages.push({ role: "system", content: text });
+  }
+
+  const contents = req.contents;
+  if (typeof contents === "string") {
+    messages.push({ role: "user", content: contents });
+    return messages;
+  }
+  const list = Array.isArray(contents) ? contents : contents ? [contents] : [];
+  for (const c of list) {
+    // An entry may be a bare string, a part ({text}/{inlineData}), or a
+    // full content object with a role — the roster uses all three.
+    if (typeof c === "string") {
+      if (c.trim()) messages.push({ role: "user", content: c });
+      continue;
+    }
+    const content = c as GeminiContent & GeminiPart;
+    const parts = content.parts ?? [content];
+    const text = parts
+      .map((p) => (p as GeminiPart).text ?? "")
+      .join("")
+      .trim();
+    if (!text) continue;
+    messages.push({ role: content.role === "model" ? "assistant" : "user", content: text });
+  }
+  if (messages.length === 0) messages.push({ role: "user", content: "" });
+  return messages;
 }
 
 export interface GenerateResponse {
@@ -66,32 +138,38 @@ interface AiClient {
 
 let aiClient: AiClient | null = null;
 
-export const getAiClient = () => {
+export const getAiClient = (): AiClient => {
   if (!aiClient) {
     aiClient = {
       models: {
         generateContent: async (request: GenerateRequest): Promise<GenerateResponse> => {
-          const res = await fetch("/api/gemini/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(request),
-          });
-          if (!res.ok) {
-            // Surface the relay's own reason (missing key, upstream
-            // refusal) instead of a generic failure — an AI app that
-            // says "not configured" is debuggable; one that says
-            // "failed" is not.
-            const detail = await res.json().catch(() => null);
-            throw new Error(
-              (detail && typeof detail.error === "string" && detail.error) ||
-                `Gemini relay returned ${res.status}`,
-            );
+          const messages = toMessages(request);
+          const wantsTools = !!request.config?.tools;
+
+          // Tool calls only survive on Gemini's own wire, so when a
+          // caller asks for them, try that path first and keep the
+          // function calls intact.
+          if (wantsTools) {
+            const key = getApiKey("gemini");
+            if (key) {
+              try {
+                return await callGeminiWithTools(request, key);
+              } catch {
+                // fall through to a plain text answer
+              }
+            }
           }
-          const data = await res.json();
+
+          const result = await chat({
+            messages,
+            model: request.model ? `gemini:${request.model}` : undefined,
+            temperature: request.config?.temperature,
+            maxTokens: request.config?.maxOutputTokens,
+          });
           return {
-            text: data.response,
-            functionCalls: data.functionCalls,
-            candidates: [{ content: { parts: [{ text: data.response }] } }],
+            text: result.text,
+            functionCalls: [],
+            candidates: [{ content: { parts: [{ text: result.text }] } }],
           };
         },
       },
@@ -99,6 +177,41 @@ export const getAiClient = () => {
   }
   return aiClient;
 };
+
+/** Native Gemini call that preserves function calling. */
+async function callGeminiWithTools(
+  request: GenerateRequest,
+  key: string,
+): Promise<GenerateResponse> {
+  const model = request.model || MODEL_NAME;
+  const body: Record<string, unknown> = {
+    contents: Array.isArray(request.contents)
+      ? request.contents
+      : [{ role: "user", parts: [{ text: String(request.contents ?? "") }] }],
+  };
+  if (request.config?.tools) body.tools = request.config.tools;
+  if (request.config?.systemInstruction) body.systemInstruction = request.config.systemInstruction;
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify(body),
+    },
+  );
+  if (!res.ok) throw new Error(`Gemini returned ${res.status}`);
+  const data = await res.json();
+  const parts = data?.candidates?.[0]?.content?.parts ?? [];
+  const text = parts
+    .map((p: { text?: string }) => p.text ?? "")
+    .join("")
+    .trim();
+  const functionCalls = parts
+    .filter((p: { functionCall?: unknown }) => p.functionCall)
+    .map((p: { functionCall: { name: string; args: Record<string, unknown> } }) => p.functionCall);
+  return { text, functionCalls, candidates: [{ content: { parts: [{ text }] } }] };
+}
 
 export const HOME_TOOLS: Tool[] = [
   {

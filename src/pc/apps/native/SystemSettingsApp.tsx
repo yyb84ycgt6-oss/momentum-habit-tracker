@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { PCThemePicker } from "@/pc/themes/components/PCThemePicker";
 import { usePCTheme } from "@/pc/themes/PCThemeContext";
+import { clearAllWidgetPositions } from "@/pc/desktop/widgetPositions";
 import { measureStorage } from "@/pc/lib/safeStorage";
 import { bus } from "@/pc/lib/bus";
 import { fetchRemoteState, flushNow } from "@/pc/lib/sync";
@@ -43,6 +44,7 @@ function formatBytes(n: number): string {
 export function SystemSettingsApp() {
   const [tab, setTab] = useState<Tab>("appearance");
   const { theme, themes } = usePCTheme();
+  const [resetAt, setResetAt] = useState<number | null>(null);
 
   return (
     <div className="flex h-full w-full bg-zinc-950 text-zinc-200">
@@ -69,6 +71,25 @@ export function SystemSettingsApp() {
               <strong className="text-zinc-300">{theme.label}</strong> ({theme.era}).
             </p>
             <PCThemePicker />
+
+            <h2 className="mb-1 mt-6 text-sm font-semibold">Floating widgets</h2>
+            <p className="mb-3 text-xs text-zinc-500">
+              Drag a floating widget to move it, or press and hold on touch. Positions are
+              remembered per widget and re-checked against the screen after a rotation, so nothing
+              ends up stranded off-edge.
+            </p>
+            <button
+              onClick={() => {
+                clearAllWidgetPositions();
+                setResetAt(Date.now());
+              }}
+              className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:bg-white/10"
+            >
+              Reset every widget to its default position
+            </button>
+            {resetAt !== null && (
+              <span className="ml-2 text-xs text-emerald-400">Done — widgets are back home.</span>
+            )}
           </section>
         )}
         {tab === "sync" && <SyncPanel />}

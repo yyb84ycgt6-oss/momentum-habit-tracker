@@ -152,6 +152,17 @@ export type AppId =
   | "iron_men"
   | "laser_tag"
   | "mail"
+  | "ai_providers"
+  | "budget_radar"
+  | "colosseum"
+  | "ambient_agents"
+  | "bus_recorder"
+  | "choreography"
+  | "speed_racer"
+  | "cartographer"
+  | "prompt_genome"
+  | "cortex"
+  | "understudy"
   | "slides";
 
 export interface DesktopItem {

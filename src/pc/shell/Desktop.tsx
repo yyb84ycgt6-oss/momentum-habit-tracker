@@ -43,6 +43,12 @@ import { useIsMobile } from "../desktop/useViewport";
 import { useLongPress, type ContextRequest } from "../desktop/useLongPress";
 import { ContextMenu, type MenuEntry } from "../desktop/ContextMenu";
 import { DraggableWindow } from "./DraggableWindow";
+import { FloatingWidget } from "../components/FloatingWidget";
+import {
+  startScheduler as startAmbientAgents,
+  stopScheduler as stopAmbientAgents,
+} from "../lib/ambient/agents";
+import { initUnderstudy } from "../lib/understudy/predictor";
 import { DesktopProvider, type DesktopApi } from "./DesktopContext";
 import { Taskbar } from "./Taskbar";
 import { StartMenu } from "./StartMenu";
@@ -263,6 +269,17 @@ export function Desktop({ onSignOut }: { onSignOut: () => void }) {
     flushNow();
     onSignOut();
   }, [onSignOut]);
+
+  /* ── always-on engines ─────────────────────────────────────────────── */
+
+  useEffect(() => {
+    // Ambient agents keep their own wall-clock schedule. The Understudy only
+    // attaches when it has been turned on, so a desktop with it off registers
+    // no listeners at all — see lib/understudy/predictor.ts.
+    startAmbientAgents();
+    initUnderstudy();
+    return () => stopAmbientAgents();
+  }, []);
 
   /* ── bus + keyboard ────────────────────────────────────────────────── */
 
@@ -555,15 +572,26 @@ export function Desktop({ onSignOut }: { onSignOut: () => void }) {
         )}
 
         {/* Floating search affordance — the palette's discoverable trigger,
-            since ⌘K is invisible to anyone who has not been told about it. */}
-        <button
-          onClick={() => setPaletteOpen(true)}
-          title="Search apps (⌘K)"
-          className="absolute right-4 top-4 z-[2500] flex items-center gap-2 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-xs text-zinc-300 backdrop-blur transition-colors hover:bg-black/60"
+            since ⌘K is invisible to anyone who has not been told about it.
+
+            Wrapped so it can be moved and stays where it is put. It sat
+            nailed to the top-right corner, which is exactly where a phone's
+            own status chrome wants to be; being unable to move it out of the
+            way was the complaint, not a missing feature. Drag on desktop,
+            press-and-hold on touch. Reset lives in System Settings. */}
+        <FloatingWidget
+          id="desktop-search"
+          className="absolute right-4 top-4 z-[2500]"
+          title="Search apps (⌘K) — drag to move"
         >
-          <Search size={13} />
-          <span className="hidden sm:inline">Search</span>
-        </button>
+          <button
+            onClick={() => setPaletteOpen(true)}
+            className="flex items-center gap-2 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-xs text-zinc-300 backdrop-blur transition-colors hover:bg-black/60"
+          >
+            <Search size={13} />
+            <span className="hidden sm:inline">Search</span>
+          </button>
+        </FloatingWidget>
 
         {paletteOpen && (
           <CommandPalette onLaunch={launchApp} onClose={() => setPaletteOpen(false)} />
