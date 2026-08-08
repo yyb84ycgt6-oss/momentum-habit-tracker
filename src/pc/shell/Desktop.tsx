@@ -49,6 +49,13 @@ import {
   stopScheduler as stopAmbientAgents,
 } from "../lib/ambient/agents";
 import { initUnderstudy } from "../lib/understudy/predictor";
+import {
+  registerApps,
+  registerThemes,
+  registerProviders,
+  registerGlobalVerbs,
+} from "../lib/backroad";
+import { allProviders } from "../lib/ai/catalog";
 import { DesktopProvider, type DesktopApi } from "./DesktopContext";
 import { Taskbar } from "./Taskbar";
 import { StartMenu } from "./StartMenu";
@@ -79,7 +86,7 @@ function cascadePosition(count: number, isMobile: boolean): { x: number; y: numb
 
 export function Desktop({ onSignOut }: { onSignOut: () => void }) {
   const isMobile = useIsMobile();
-  const { isDefault: themeIsDefault, wallpaper, scopeProps, setTheme } = usePCTheme();
+  const { isDefault: themeIsDefault, wallpaper, scopeProps, setTheme, themes } = usePCTheme();
 
   const [booted, setBooted] = useState(false);
   const [windows, setWindows] = useState<OpenWindow[]>([]);
@@ -269,6 +276,18 @@ export function Desktop({ onSignOut }: { onSignOut: () => void }) {
     flushNow();
     onSignOut();
   }, [onSignOut]);
+
+  /* ── the back road's on-ramps ──────────────────────────────────────── */
+
+  useEffect(() => {
+    // Each set is registered by whatever already owns it — the app registry,
+    // the theme registry, the provider catalog — so there is no second list
+    // here to drift out of sync with the first.
+    registerApps(APPS.map((a) => ({ id: a.id, name: a.name, keywords: [a.description] })));
+    registerThemes(themes.map((t) => ({ id: t.id, label: t.label, era: t.era })));
+    registerProviders(allProviders().map((p) => ({ id: p.id, label: p.label })));
+    registerGlobalVerbs();
+  }, [themes]);
 
   /* ── always-on engines ─────────────────────────────────────────────── */
 

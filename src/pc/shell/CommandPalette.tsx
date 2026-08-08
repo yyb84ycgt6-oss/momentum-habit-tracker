@@ -7,30 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CornerDownLeft, Search } from "lucide-react";
 import { APPS, CATEGORY_LABELS } from "../apps/registry";
-
-/** Score a candidate against a query; null means "no match". Lower is better. */
-function score(query: string, target: string): number | null {
-  const q = query.toLowerCase();
-  const t = target.toLowerCase();
-  if (!q) return 0;
-
-  const direct = t.indexOf(q);
-  // A literal substring always beats a scattered subsequence, and an earlier
-  // hit beats a later one.
-  if (direct !== -1) return direct;
-
-  let qi = 0;
-  let last = -1;
-  let gaps = 0;
-  for (let ti = 0; ti < t.length && qi < q.length; ti += 1) {
-    if (t[ti] === q[qi]) {
-      if (last !== -1) gaps += ti - last - 1;
-      last = ti;
-      qi += 1;
-    }
-  }
-  return qi === q.length ? 100 + gaps : null;
-}
+import { go, resolve, type ResolvedDestination } from "../lib/backroad";
 
 export function CommandPalette({
   onLaunch,
@@ -43,18 +20,37 @@ export function CommandPalette({
   const [active, setActive] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const results = useMemo(() => {
-    const scored = APPS.map((app) => {
-      const nameScore = score(query, app.name);
-      const descScore = score(query, app.description);
-      // Description matches are real but weaker signals than name matches.
-      const best = nameScore !== null ? nameScore : descScore !== null ? descScore + 400 : null;
-      return best === null ? null : { app, best };
-    }).filter((r): r is { app: (typeof APPS)[number]; best: number } => r !== null);
+  // Two modes on purpose. With an empty box this browses the whole app
+  // catalogue, which is how anyone discovers what exists. The moment there is
+  // a query it resolves through the back road instead, so the same box also
+  // reaches themes, providers and global verbs — destinations an app-only
+  // search could never return.
+  const browsing = !query.trim();
 
-    scored.sort((a, b) => a.best - b.best || a.app.name.localeCompare(b.app.name));
-    return scored.slice(0, 40).map((r) => r.app);
-  }, [query]);
+  const browseResults = useMemo(
+    () => (browsing ? [...APPS].sort((a, b) => a.name.localeCompare(b.name)).slice(0, 40) : []),
+    [browsing],
+  );
+
+  const found: ResolvedDestination[] = useMemo(
+    () => (browsing ? [] : resolve(query, 40)),
+    [browsing, query],
+  );
+
+  const appFor = (address: string) =>
+    address.startsWith("app:") ? APPS.find((a) => a.id === address.slice(4)) : undefined;
+
+  // One flat list drives the keyboard, so arrows and Enter behave identically
+  // in both modes.
+  const rows = useMemo(
+    () =>
+      browsing
+        ? browseResults.map((app) => ({ address: `app:${app.id}`, app, dest: undefined }))
+        : found.map((dest) => ({ address: dest.address, app: appFor(dest.address), dest })),
+    [browsing, browseResults, found],
+  );
+
+  const results = rows;
 
   useEffect(() => setActive(0), [query]);
 
@@ -78,7 +74,10 @@ export function CommandPalette({
       if (e.key === "Enter") {
         e.preventDefault();
         const app = results[active];
-        if (app) onLaunch(app.id);
+        if (app) {
+          if (app.app) onLaunch(app.app.id);
+          else void go(app.address);
+        }
       }
     };
     window.addEventListener("keydown", onKey);
@@ -116,35 +115,42 @@ export function CommandPalette({
 
         <div ref={listRef} className="max-h-[50vh] overflow-y-auto p-1.5">
           {results.length === 0 ? (
-            <p className="p-8 text-center text-sm text-zinc-600">No apps match “{query}”.</p>
+            <p className="p-8 text-center text-sm text-zinc-600">Nothing matches “{query}”.</p>
           ) : (
-            results.map((app, i) => {
-              const Icon = app.icon;
+            results.map((row, i) => {
+              const app = row.app;
+              const Icon = app?.icon;
               return (
                 <button
-                  key={app.id}
+                  key={row.address}
                   data-index={i}
                   onPointerEnter={() => setActive(i)}
-                  onClick={() => onLaunch(app.id)}
+                  onClick={() => (app ? onLaunch(app.id) : void go(row.address))}
                   className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors ${
                     i === active ? "bg-white/10" : "hover:bg-white/5"
                   }`}
                 >
                   <span
-                    className={`grid size-8 shrink-0 place-items-center rounded-lg text-white ${app.bgColor}`}
+                    className={`grid size-8 shrink-0 place-items-center rounded-lg text-white ${app?.bgColor ?? "bg-zinc-800"}`}
                   >
-                    <Icon size={15} />
+                    {Icon ? (
+                      <Icon size={15} />
+                    ) : (
+                      <span className="text-[8px] uppercase text-zinc-400">
+                        {row.dest?.kind.slice(0, 4)}
+                      </span>
+                    )}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-xs font-medium text-zinc-100">
-                      {app.name}
+                      {app?.name ?? row.dest?.label}
                     </span>
                     <span className="block truncate text-[10px] text-zinc-500">
-                      {app.description}
+                      {app?.description ?? row.address}
                     </span>
                   </span>
                   <span className="shrink-0 text-[10px] text-zinc-600">
-                    {CATEGORY_LABELS[app.category]}
+                    {app ? CATEGORY_LABELS[app.category] : row.dest?.kind}
                   </span>
                   {i === active && <CornerDownLeft size={12} className="shrink-0 text-zinc-500" />}
                 </button>
